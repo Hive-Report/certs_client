@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction } from 'express';
-import { UserService } from '../services/UserService.js';
+import userService from '../services/UserServiceSQLite.js';
 import logger from '../logger/index.js';
 
 // Розширюємо Request interface для користувача
@@ -7,7 +7,7 @@ declare global {
   namespace Express {
     interface Request {
       user?: {
-        id: number;
+        id: string;
         username: string;
         email: string;
       };
@@ -18,7 +18,7 @@ declare global {
 /**
  * Middleware для перевірки JWT токена
  */
-export const authMiddleware = (req: Request, res: Response, next: NextFunction): void => {
+export const authMiddleware = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     // Отримуємо токен з заголовка Authorization
     const authHeader = req.headers.authorization;
@@ -30,11 +30,15 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction):
 
     const token = authHeader.substring(7); // Видаляємо "Bearer "
     
-    const result = UserService.verifyToken(token);
+    const result = await userService.verifyToken(token);
     
     if (result.success && result.user) {
       // Додаємо користувача до запиту
-      req.user = result.user;
+      req.user = {
+        id: result.user.id,
+        username: result.user.username,
+        email: result.user.email
+      };
       next();
     } else {
       res.status(401).json({ error: result.error ?? 'Invalid token' });

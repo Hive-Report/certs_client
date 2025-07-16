@@ -3,3 +3,50 @@ dist/
 .env
 .vscode/
 logs/
+
+# SQLite database files
+server/data/
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+
+# Environment files
+.env.*
+!.env.example
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+
+# NPM debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build outputs
+build/
+dist/
+out/
+
+# Coverage reports
+coverage/
+.nyc_output/
+
+# Local development
+.local/
+.cache/

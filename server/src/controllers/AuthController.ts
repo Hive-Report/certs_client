@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express';
-import { UserService } from '../services/UserService.js';
+import userService from '../services/UserServiceSQLite.js';
 import logger from '../logger/index.js';
 
 export class AuthController {
@@ -25,7 +25,7 @@ export class AuthController {
         return;
       }
 
-      const result = await UserService.register({ username, email, password });
+      const result = await userService.register({ username, email, password });
 
       if (result.success) {
         res.status(201).json(result);
@@ -60,7 +60,7 @@ export class AuthController {
         return;
       }
 
-      const result = await UserService.login({ username, password });
+      const result = await userService.login({ username, password });
 
       if (result.success) {
         res.json(result);
@@ -90,7 +90,7 @@ export class AuthController {
   /**
    * Верифікація JWT токена
    */
-  static verify(req: Request, res: Response): void {
+  static async verify(req: Request, res: Response): Promise<void> {
     try {
       // Перевірка на наявність body
       if (!req.body) {
@@ -105,7 +105,7 @@ export class AuthController {
         return;
       }
 
-      const result = UserService.verifyToken(token);
+      const result = await userService.verifyToken(token);
 
       if (result.success) {
         res.json(result);

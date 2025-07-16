@@ -174,30 +174,30 @@ export default function SearchCerts() {
     const today = new Date().toISOString().split('T')[0];
     
     switch (type) {
-      case 'active':
+      case 'Діючий':
         setFilters(prev => ({ 
           ...prev, 
           end_date_from: today,
           end_date_to: '',
-          status: 'active'
+          status: 'Діючий'
         }));
         break;
-      case 'expired':
+      case 'Заблокований':
         setFilters(prev => ({ 
           ...prev, 
           end_date_to: today,
           end_date_from: '',
-          status: 'expired'
+          status: 'Заблокований'
         }));
         break;
-      case 'expiring':
+      case 'Скасований':
         const nextMonth = new Date();
         nextMonth.setMonth(nextMonth.getMonth() + 1);
         setFilters(prev => ({ 
           ...prev, 
           end_date_from: today,
           end_date_to: nextMonth.toISOString().split('T')[0],
-          status: 'active'
+          status: 'Скасований'
         }));
         break;
       default:
@@ -277,18 +277,18 @@ export default function SearchCerts() {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'active': return 'bg-green-100 text-green-800 border-green-200';
-      case 'expired': return 'bg-red-100 text-red-800 border-red-200';
-      case 'pending': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'Діючий': return 'bg-green-100 text-green-800 border-green-200';
+      case 'Заблокований': return 'bg-red-100 text-red-800 border-red-200';
+      case 'Скасований': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
       default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
 
   const getStatusText = (status) => {
     switch (status) {
-      case 'active': return 'Активний';
-      case 'expired': return 'Прострочений';
-      case 'pending': return 'Очікування';
+      case 'Діючий': return 'Діючий';
+      case 'Заблокований': return 'Заблокований';
+      case 'Скасований': return 'Скасований';
       default: return 'Невідомо';
     }
   };
@@ -458,19 +458,19 @@ export default function SearchCerts() {
                     <h4 className="text-sm font-medium text-gray-700 mb-3">Швидкі фільтри:</h4>
                     <div className="flex flex-wrap gap-2">
                       <button
-                        onClick={() => setQuickFilter('active')}
+                        onClick={() => setQuickFilter('Діючий')}
                         className="px-3 py-1 text-sm bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
                       >
                         Активні сьогодні
                       </button>
                       <button
-                        onClick={() => setQuickFilter('expired')}
+                        onClick={() => setQuickFilter('Заблокований')}
                         className="px-3 py-1 text-sm bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
                       >
                         Прострочені
                       </button>
                       <button
-                        onClick={() => setQuickFilter('expiring')}
+                        onClick={() => setQuickFilter('Скасований')}
                         className="px-3 py-1 text-sm bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200 transition-colors"
                       >
                         Закінчуються в місяць
@@ -494,7 +494,7 @@ export default function SearchCerts() {
                               className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             >
                               <option value="">Всі статуси</option>
-                              <option value="active">Активний</option>
+                              <option value="Діючий">Діючий</option>
                               <option value="expired">Прострочений</option>
                               <option value="pending">Очікування</option>
                             </select>
