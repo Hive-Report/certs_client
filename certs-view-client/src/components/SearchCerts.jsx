@@ -11,7 +11,11 @@ export default function SearchCerts() {
     type: '',
     status: '',
     storage_type: '',
-    crypt: ''
+    crypt: '',
+    start_date_from: '',
+    start_date_to: '',
+    end_date_from: '',
+    end_date_to: ''
   });
   const [columnSettings, setColumnSettings] = useState({
     serial: { visible: true, width: 200 },
@@ -72,7 +76,11 @@ export default function SearchCerts() {
       type: '',
       status: '',
       storage_type: '',
-      crypt: ''
+      crypt: '',
+      start_date_from: '',
+      start_date_to: '',
+      end_date_from: '',
+      end_date_to: ''
     });
   };
 
@@ -112,8 +120,8 @@ export default function SearchCerts() {
   const columns = [
     { key: 'serial', label: 'Серійний номер', filterable: false },
     { key: 'name', label: 'Назва', filterable: true },
-    { key: 'start_date', label: 'Дата початку', filterable: false },
-    { key: 'end_date', label: 'Дата закінчення', filterable: false },
+    { key: 'start_date', label: 'Дата початку', filterable: true, type: 'date' },
+    { key: 'end_date', label: 'Дата закінчення', filterable: true, type: 'date' },
     { key: 'type', label: 'Тип', filterable: true },
     { key: 'storage_type', label: 'Тип зберігання', filterable: true },
     { key: 'crypt', label: 'Криптографія', filterable: true },
@@ -124,13 +132,46 @@ export default function SearchCerts() {
     if (!data || data.length === 0) return [];
     
     let filtered = data.filter(cert => {
-      return (
+      // Текстові фільтри
+      const textFilters = (
         (cert.name || '').toLowerCase().includes(filters.name.toLowerCase()) &&
         (cert.type || '').toLowerCase().includes(filters.type.toLowerCase()) &&
         (cert.status || '').toLowerCase().includes(filters.status.toLowerCase()) &&
         (cert.storage_type || '').toLowerCase().includes(filters.storage_type.toLowerCase()) &&
         (cert.crypt || '').toLowerCase().includes(filters.crypt.toLowerCase())
       );
+      
+      if (!textFilters) return false;
+      
+      // Фільтри за датами
+      const startDate = cert.start_date ? new Date(cert.start_date) : null;
+      const endDate = cert.end_date ? new Date(cert.end_date) : null;
+      
+      // Фільтр "Дата початку від"
+      if (filters.start_date_from && startDate) {
+        const fromDate = new Date(filters.start_date_from);
+        if (startDate < fromDate) return false;
+      }
+      
+      // Фільтр "Дата початку до"
+      if (filters.start_date_to && startDate) {
+        const toDate = new Date(filters.start_date_to);
+        if (startDate > toDate) return false;
+      }
+      
+      // Фільтр "Дата закінчення від"
+      if (filters.end_date_from && endDate) {
+        const fromDate = new Date(filters.end_date_from);
+        if (endDate < fromDate) return false;
+      }
+      
+      // Фільтр "Дата закінчення до"
+      if (filters.end_date_to && endDate) {
+        const toDate = new Date(filters.end_date_to);
+        if (endDate > toDate) return false;
+      }
+      
+      return true;
     });
 
     if (sortConfig.key) {
@@ -245,31 +286,118 @@ export default function SearchCerts() {
                 Очистити
               </button>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-3">
-              {columns.filter(col => col.filterable).map(column => (
-                <div key={column.key}>
-                  {column.key === 'status' ? (
-                    <select
-                      value={filters[column.key]}
-                      onChange={(e) => handleFilterChange(column.key, e.target.value)}
-                      className="w-full p-2 border rounded text-sm"
-                    >
-                      <option value="">Всі статуси</option>
-                      <option value="active">Активний</option>
-                      <option value="expired">Прострочений</option>
-                      <option value="pending">Очікування</option>
-                    </select>
-                  ) : (
-                    <input
-                      type="text"
-                      placeholder={`Фільтр за ${column.label.toLowerCase()}...`}
-                      value={filters[column.key]}
-                      onChange={(e) => handleFilterChange(column.key, e.target.value)}
-                      className="w-full p-2 border rounded text-sm"
-                    />
-                  )}
+            
+            {/* Текстові фільтри */}
+            <div className="mb-4">
+              <h4 className="text-sm font-medium mb-2 text-gray-700">Текстові фільтри</h4>
+              <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-3">
+                {columns.filter(col => col.filterable && col.type !== 'date').map(column => (
+                  <div key={column.key}>
+                    {column.key === 'status' ? (
+                      <select
+                        value={filters[column.key]}
+                        onChange={(e) => handleFilterChange(column.key, e.target.value)}
+                        className="w-full p-2 border rounded text-sm"
+                      >
+                        <option value="">Всі статуси</option>
+                        <option value="active">Активний</option>
+                        <option value="expired">Прострочений</option>
+                        <option value="pending">Очікування</option>
+                      </select>
+                    ) : (
+                      <input
+                        type="text"
+                        placeholder={`Фільтр за ${column.label.toLowerCase()}...`}
+                        value={filters[column.key]}
+                        onChange={(e) => handleFilterChange(column.key, e.target.value)}
+                        className="w-full p-2 border rounded text-sm"
+                      />
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            {/* Фільтри за датами */}
+            <div>
+              <h4 className="text-sm font-medium mb-2 text-gray-700">Фільтри за датами</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                <div>
+                  <label className="block text-xs text-gray-600 mb-1">Дата початку від:</label>
+                  <input
+                    type="date"
+                    value={filters.start_date_from}
+                    onChange={(e) => handleFilterChange('start_date_from', e.target.value)}
+                    className="w-full p-2 border rounded text-sm"
+                  />
                 </div>
-              ))}
+                <div>
+                  <label className="block text-xs text-gray-600 mb-1">Дата початку до:</label>
+                  <input
+                    type="date"
+                    value={filters.start_date_to}
+                    onChange={(e) => handleFilterChange('start_date_to', e.target.value)}
+                    className="w-full p-2 border rounded text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-600 mb-1">Дата закінчення від:</label>
+                  <input
+                    type="date"
+                    value={filters.end_date_from}
+                    onChange={(e) => handleFilterChange('end_date_from', e.target.value)}
+                    className="w-full p-2 border rounded text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-600 mb-1">Дата закінчення до:</label>
+                  <input
+                    type="date"
+                    value={filters.end_date_to}
+                    onChange={(e) => handleFilterChange('end_date_to', e.target.value)}
+                    className="w-full p-2 border rounded text-sm"
+                  />
+                </div>
+              </div>
+              
+              {/* Швидкі фільтри */}
+              <div className="mt-3">
+                <h5 className="text-xs font-medium mb-2 text-gray-600">Швидкі фільтри:</h5>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={() => {
+                      const today = new Date().toISOString().split('T')[0];
+                      setFilters(prev => ({ ...prev, end_date_from: today }));
+                    }}
+                    className="px-3 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200"
+                  >
+                    Активні сьогодні
+                  </button>
+                  <button
+                    onClick={() => {
+                      const today = new Date().toISOString().split('T')[0];
+                      setFilters(prev => ({ ...prev, end_date_to: today }));
+                    }}
+                    className="px-3 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200"
+                  >
+                    Прострочені
+                  </button>
+                  <button
+                    onClick={() => {
+                      const today = new Date();
+                      const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, today.getDate());
+                      setFilters(prev => ({ 
+                        ...prev, 
+                        end_date_from: today.toISOString().split('T')[0],
+                        end_date_to: nextMonth.toISOString().split('T')[0]
+                      }));
+                    }}
+                    className="px-3 py-1 text-xs bg-yellow-100 text-yellow-700 rounded hover:bg-yellow-200"
+                  >
+                    Закінчуються в місяць
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
 
