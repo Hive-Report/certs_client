@@ -4,7 +4,7 @@
   "description": "A temporary web client for searching information on the KEP of CSK \"Ukraine\" via API",
   "license": "ISC",
   "author": "Oleksandr Bazhyn",
-  "type": "commonjs",
+  "type": "module",
   "main": "index.ts",
   "scripts": {
     "start": "node dist/index.js",
@@ -14,6 +14,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
     "@types/node": "^24.0.14",
     "@typescript-eslint/eslint-plugin": "^8.37.0",
@@ -26,8 +27,10 @@
     "typescript": "^5.8.3"
   },
   "dependencies": {
+    "cors": "^2.8.5",
     "dotenv": "^17.2.0",
-    "express": "^5.1.0"
+    "express": "^5.1.0",
+    "winston": "^3.17.0"
   },
   "_moduleAliases": {
     "@/resources": "dist/resources",
