@@ -30,11 +30,15 @@ export default function SearchCerts() {
     setLoading(true);
     try {
       const response = await fetch(`/api/certs/${search}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
       const result = await response.json();
-      setData(result);
+      setData(Array.isArray(result) ? result : []);
     } catch (error) {
       console.error('Помилка:', error);
       setData([]);
+      // Можна додати toast notification або інше повідомлення про помилку
     } finally {
       setLoading(false);
     }
@@ -117,24 +121,26 @@ export default function SearchCerts() {
   ];
 
   const filteredAndSortedData = React.useMemo(() => {
+    if (!data || data.length === 0) return [];
+    
     let filtered = data.filter(cert => {
       return (
-        cert.name.toLowerCase().includes(filters.name.toLowerCase()) &&
-        cert.type.toLowerCase().includes(filters.type.toLowerCase()) &&
-        cert.status.toLowerCase().includes(filters.status.toLowerCase()) &&
-        cert.storage_type.toLowerCase().includes(filters.storage_type.toLowerCase()) &&
-        cert.crypt.toLowerCase().includes(filters.crypt.toLowerCase())
+        (cert.name || '').toLowerCase().includes(filters.name.toLowerCase()) &&
+        (cert.type || '').toLowerCase().includes(filters.type.toLowerCase()) &&
+        (cert.status || '').toLowerCase().includes(filters.status.toLowerCase()) &&
+        (cert.storage_type || '').toLowerCase().includes(filters.storage_type.toLowerCase()) &&
+        (cert.crypt || '').toLowerCase().includes(filters.crypt.toLowerCase())
       );
     });
 
     if (sortConfig.key) {
       filtered.sort((a, b) => {
-        let aValue = a[sortConfig.key];
-        let bValue = b[sortConfig.key];
+        let aValue = a[sortConfig.key] || '';
+        let bValue = b[sortConfig.key] || '';
         
         if (sortConfig.key === 'start_date' || sortConfig.key === 'end_date') {
-          aValue = new Date(aValue);
-          bValue = new Date(bValue);
+          aValue = aValue ? new Date(aValue) : new Date(0);
+          bValue = bValue ? new Date(bValue) : new Date(0);
         }
         
         if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
@@ -164,7 +170,16 @@ export default function SearchCerts() {
         </button>
       </div>
 
-      {loading && <div>Завантаження...</div>}
+      {loading && <div className="text-center py-4">Завантаження...</div>}
+
+      {!loading && data.length === 0 && search.trim() && (
+        <div className="text-center py-8">
+          <div className="text-gray-500 text-lg mb-2">Результатів не знайдено</div>
+          <div className="text-gray-400 text-sm">
+            Спробуйте змінити ЄДРПОУ або перевірте правильність введення
+          </div>
+        </div>
+      )}
 
       {data.length > 0 && (
         <div className="space-y-4">
@@ -263,67 +278,82 @@ export default function SearchCerts() {
             Знайдено сертифікатів: {filteredAndSortedData.length} з {data.length}
           </div>
           
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse text-sm">
-              <thead>
-                <tr className="bg-gray-50">
-                  {columns.filter(col => columnSettings[col.key].visible).map(column => (
-                    <th 
-                      key={column.key}
-                      className="border p-2 text-left cursor-pointer hover:bg-gray-100 resize-x"
-                      onClick={() => handleSort(column.key)}
-                      style={{ 
-                        width: `${columnSettings[column.key].width}px`,
-                        minWidth: `${columnSettings[column.key].width}px`,
-                        maxWidth: `${columnSettings[column.key].width}px`
-                      }}
-                    >
-                      {column.label}
-                      {sortConfig.key === column.key && (
-                        <span className="ml-1">{sortConfig.direction === 'asc' ? '↑' : '↓'}</span>
-                      )}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {filteredAndSortedData.map((cert, index) => (
-                  <tr key={cert.serial || index}>
+          {filteredAndSortedData.length === 0 ? (
+            <div className="text-center py-8 bg-gray-50 rounded">
+              <div className="text-gray-500 text-lg mb-2">Немає сертифікатів за вашими фільтрами</div>
+              <div className="text-gray-400 text-sm mb-4">
+                Спробуйте змінити або очистити фільтри для отримання результатів
+              </div>
+              <button
+                onClick={clearFilters}
+                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+              >
+                Очистити фільтри
+              </button>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse text-sm">
+                <thead>
+                  <tr className="bg-gray-50">
                     {columns.filter(col => columnSettings[col.key].visible).map(column => (
-                      <td
+                      <th 
                         key={column.key}
-                        className={`border p-2 cursor-pointer ${
-                          copiedCell === `${column.key}-${index}` ? 'bg-green-200' : 'hover:bg-gray-100'
-                        }`}
-                        onClick={() => copyToClipboard(cert[column.key], `${column.key}-${index}`)}
+                        className="border p-2 text-left cursor-pointer hover:bg-gray-100 resize-x"
+                        onClick={() => handleSort(column.key)}
                         style={{ 
                           width: `${columnSettings[column.key].width}px`,
                           minWidth: `${columnSettings[column.key].width}px`,
-                          maxWidth: `${columnSettings[column.key].width}px`,
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap'
+                          maxWidth: `${columnSettings[column.key].width}px`
                         }}
-                        title={`${cert[column.key]} - Клікніть для копіювання`}
                       >
-                        {column.key === 'status' ? (
-                          <span className={`px-2 py-1 rounded text-xs ${
-                            cert.status === 'active' ? 'bg-green-100 text-green-800' : 
-                            cert.status === 'expired' ? 'bg-red-100 text-red-800' : 
-                            'bg-yellow-100 text-yellow-800'
-                          }`}>
-                            {cert.status}
-                          </span>
-                        ) : (
-                          cert[column.key]
+                        {column.label}
+                        {sortConfig.key === column.key && (
+                          <span className="ml-1">{sortConfig.direction === 'asc' ? '↑' : '↓'}</span>
                         )}
-                      </td>
+                      </th>
                     ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {filteredAndSortedData.map((cert, index) => (
+                    <tr key={cert.serial || index}>
+                      {columns.filter(col => columnSettings[col.key].visible).map(column => (
+                        <td
+                          key={column.key}
+                          className={`border p-2 cursor-pointer ${
+                            copiedCell === `${column.key}-${index}` ? 'bg-green-200' : 'hover:bg-gray-100'
+                          }`}
+                          onClick={() => copyToClipboard(cert[column.key] || '', `${column.key}-${index}`)}
+                          style={{ 
+                            width: `${columnSettings[column.key].width}px`,
+                            minWidth: `${columnSettings[column.key].width}px`,
+                            maxWidth: `${columnSettings[column.key].width}px`,
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap'
+                          }}
+                          title={`${cert[column.key] || ''} - Клікніть для копіювання`}
+                        >
+                          {column.key === 'status' ? (
+                            <span className={`px-2 py-1 rounded text-xs ${
+                              cert.status === 'active' ? 'bg-green-100 text-green-800' : 
+                              cert.status === 'expired' ? 'bg-red-100 text-red-800' : 
+                              'bg-yellow-100 text-yellow-800'
+                            }`}>
+                              {cert.status || 'Невідомо'}
+                            </span>
+                          ) : (
+                            cert[column.key] || '-'
+                          )}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       )}
     </div>
