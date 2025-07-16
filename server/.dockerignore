@@ -37,6 +37,7 @@ docker-compose.yml
 
 # Логи (копіюються окремо)
 logs/*.log
+*.log
 
 # Тимчасові файли
 *.tmp

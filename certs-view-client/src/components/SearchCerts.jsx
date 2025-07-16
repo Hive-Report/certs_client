@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import apiService from '../services/apiService.js';
 
 export default function SearchCerts() {
   const [search, setSearch] = useState('');
@@ -73,15 +74,15 @@ export default function SearchCerts() {
     setError('');
     
     try {
-      const response = await fetch(`/api/certs/${search}`);
-      if (!response.ok) {
-        throw new Error(`Помилка сервера: ${response.status}`);
-      }
-      const result = await response.json();
+      const result = await apiService.searchCerts(search);
       setData(Array.isArray(result) ? result : []);
     } catch (error) {
       console.error('Помилка:', error);
-      setError(error.message || 'Помилка при завантаженні даних');
+      if (error.message.includes('401')) {
+        setError('Сесія закінчилась. Будь ласка, авторизуйтесь знову.');
+      } else {
+        setError(error.message || 'Помилка при завантаженні даних');
+      }
       setData([]);
     } finally {
       setLoading(false);
@@ -304,16 +305,6 @@ export default function SearchCerts() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto p-6">
-        {/* Заголовок */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Пошук сертифікатів електронного підпису
-          </h1>
-          <p className="text-gray-600">
-            Введіть ЄДРПОУ для пошуку сертифікатів організації
-          </p>
-        </div>
-
         {/* Пошук */}
         <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
           <div className="flex gap-3">

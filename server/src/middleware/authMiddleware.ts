@@ -1,0 +1,62 @@
+import type { Request, Response, NextFunction } from 'express';
+import { UserService } from '../services/UserService.js';
+import logger from '../logger/index.js';
+
+// Розширюємо Request interface для користувача
+declare global {
+  namespace Express {
+    interface Request {
+      user?: {
+        id: number;
+        username: string;
+        email: string;
+      };
+    }
+  }
+}
+
+/**
+ * Middleware для перевірки JWT токена
+ */
+export const authMiddleware = (req: Request, res: Response, next: NextFunction): void => {
+  try {
+    // Отримуємо токен з заголовка Authorization
+    const authHeader = req.headers.authorization;
+    
+    if (!authHeader?.startsWith('Bearer ')) {
+      res.status(401).json({ error: 'Authorization token is required' });
+      return;
+    }
+
+    const token = authHeader.substring(7); // Видаляємо "Bearer "
+    
+    const result = UserService.verifyToken(token);
+    
+    if (result.success && result.user) {
+      // Додаємо користувача до запиту
+      req.user = result.user;
+      next();
+    } else {
+      res.status(401).json({ error: result.error ?? 'Invalid token' });
+    }
+  } catch (error) {
+    logger.error('Auth middleware error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+/**
+ * Middleware для перевірки ролей (приклад для майбутнього розширення)
+ */
+export const requireRole = (_roles: string[]) => {
+  return (req: Request, res: Response, next: NextFunction): void => {
+    if (!req.user) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+
+    // Тут можна додати логіку перевірки ролей
+    // Наразі просто пропускаємо
+    next();
+  };
+};
