@@ -1,6 +1,6 @@
 import type { CertsServiceInterface, Cert, CertsApiResponse } from '../../types.js';
 import type { Logger } from 'winston';
-import { config } from '../../config';
+import { config } from '../../config.js';
 import type { AxiosResponse } from 'axios';
 import axios from 'axios';
 

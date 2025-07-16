@@ -10,18 +10,18 @@ export class CertsController {
     this.logger = logger;
   }
 
-  async parseCerts(req: Request, res: Response): Promise<void> {
-    const { edrpou } = req.body;
+  async getCerts(req: Request, res: Response): Promise<void> {
+    const { edrpou } = req.params;
     if (!edrpou) {
       this.logger.error('EDRPOU is required');
       res.status(400).json({ error: 'EDRPOU is required' });
       return;
     }
-    this.logger.info(`Parsing certs for EDRPOU: ${edrpou}`);
+    this.logger.info(`Getting certs for EDRPOU: ${edrpou}`);
     const certsService = new CertsService(createLogger('CertsService'));
     try {
       const certs = await certsService.getCerts(edrpou);
-      this.logger.info(`Successfully parsed ${certs.length} certs for EDRPOU: ${edrpou}`);
+      this.logger.info(`Successfully retrieved ${certs.length} certs for EDRPOU: ${edrpou}`);
       res.status(200).json(certs);
     } catch (error) {
       this.logger.error('Error fetching certs:', error);
