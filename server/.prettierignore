@@ -1,0 +1,13 @@
+# Ignore files for Prettier formatting
+.env
+.env.example
+*.js
+*.cjs
+*.json
+*.log
+node_modules/
+dist/
+.prettierignore
+package-lock.json
+package.json
+logs/

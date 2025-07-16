@@ -17,8 +17,8 @@ jest.mock('../../config', () => ({
   config: {
     CERTS_API_TOKEN: 'test-token',
     PORT: '3001',
-    NODE_ENV: 'test'
-  }
+    NODE_ENV: 'test',
+  },
 }));
 
 // Import the service after mocking
@@ -57,13 +57,15 @@ describe('CertsService', () => {
     });
 
     it('should throw error for short EDRPOU', async () => {
-      await expect(certsService.getCerts('123')).rejects.toThrow('EDRPOU must be at least 8 digits');
+      await expect(certsService.getCerts('123')).rejects.toThrow(
+        'EDRPOU must be at least 8 digits',
+      );
     });
 
     it('should accept valid EDRPOU', async () => {
       const mockResponse: CertsApiResponse = {
         status: 'ok',
-        data: []
+        data: [],
       };
 
       mockedAxios.post.mockResolvedValue({ data: mockResponse });
@@ -83,14 +85,14 @@ describe('CertsService', () => {
         type: 'Печатка',
         storage_type: 'Файловий',
         crypt: 'Підписання',
-        status: 'Діючий'
-      }
+        status: 'Діючий',
+      },
     ];
 
     it('should successfully fetch certificates', async () => {
       const mockResponse: CertsApiResponse = {
         status: 'ok',
-        data: mockCerts
+        data: mockCerts,
       };
 
       mockedAxios.post.mockResolvedValue({ data: mockResponse });
@@ -102,23 +104,27 @@ describe('CertsService', () => {
         'https://api.medoc.ua/cert/info.php',
         {
           getInfoByEdrpou: 1,
-          edrpou: validEdrpou
+          edrpou: validEdrpou,
         },
         {
           headers: {
-            'Auth': 'test-token',
-            'Content-Type': 'application/json'
-          }
-        }
+            Auth: 'test-token',
+            'Content-Type': 'application/json',
+          },
+        },
       );
-      expect(mockLogger.info).toHaveBeenCalledWith(`Fetching certificates for EDRPOU: ${validEdrpou}`);
-      expect(mockLogger.info).toHaveBeenCalledWith(`Successfully fetched ${mockCerts.length} certificates for EDRPOU: ${validEdrpou}`);
+      expect(mockLogger.info).toHaveBeenCalledWith(
+        `Fetching certificates for EDRPOU: ${validEdrpou}`,
+      );
+      expect(mockLogger.info).toHaveBeenCalledWith(
+        `Successfully fetched ${mockCerts.length} certificates for EDRPOU: ${validEdrpou}`,
+      );
     });
 
     it('should handle empty results', async () => {
       const mockResponse: CertsApiResponse = {
         status: 'ok',
-        data: []
+        data: [],
       };
 
       mockedAxios.post.mockResolvedValue({ data: mockResponse });
@@ -126,7 +132,9 @@ describe('CertsService', () => {
       const result = await certsService.getCerts(validEdrpou);
 
       expect(result).toEqual([]);
-      expect(mockLogger.info).toHaveBeenCalledWith(`Successfully fetched 0 certificates for EDRPOU: ${validEdrpou}`);
+      expect(mockLogger.info).toHaveBeenCalledWith(
+        `Successfully fetched 0 certificates for EDRPOU: ${validEdrpou}`,
+      );
     });
   });
 
@@ -136,12 +144,14 @@ describe('CertsService', () => {
     it('should handle API error status', async () => {
       const mockResponse: CertsApiResponse = {
         status: 'error',
-        data: []
+        data: [],
       };
 
       mockedAxios.post.mockResolvedValue({ data: mockResponse });
 
-      await expect(certsService.getCerts(validEdrpou)).rejects.toThrow('API returned error status: error');
+      await expect(certsService.getCerts(validEdrpou)).rejects.toThrow(
+        'API returned error status: error',
+      );
       expect(mockLogger.error).toHaveBeenCalledWith('API returned error status: error');
     });
 
@@ -149,9 +159,9 @@ describe('CertsService', () => {
       const mockError = {
         response: {
           status: 401,
-          data: { message: 'Unauthorized' }
+          data: { message: 'Unauthorized' },
         },
-        message: 'Request failed'
+        message: 'Request failed',
       };
 
       mockedAxios.post.mockRejectedValue(mockError);
@@ -163,13 +173,15 @@ describe('CertsService', () => {
 
     it('should handle network errors', async () => {
       const mockError = {
-        message: 'Network Error'
+        message: 'Network Error',
       };
 
       mockedAxios.post.mockRejectedValue(mockError);
       mockedAxios.isAxiosError.mockReturnValue(true);
 
-      await expect(certsService.getCerts(validEdrpou)).rejects.toThrow('HTTP undefined: Network Error');
+      await expect(certsService.getCerts(validEdrpou)).rejects.toThrow(
+        'HTTP undefined: Network Error',
+      );
       expect(mockLogger.error).toHaveBeenCalledWith('HTTP undefined: Network Error');
     });
 
