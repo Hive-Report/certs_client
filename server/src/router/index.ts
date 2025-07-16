@@ -1,4 +1,5 @@
-import { Router, Request, Response } from 'express';
+import type { Request, Response } from 'express';
+import { Router } from 'express';
 import { createLogger } from '../logger/index.js';
 import { CertsController } from '../controllers/CertsController.js';
 

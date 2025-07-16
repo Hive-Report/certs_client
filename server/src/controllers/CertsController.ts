@@ -1,32 +1,31 @@
-import { Request, Response } from 'express';
-import { Logger } from 'winston';
+import type { Request, Response } from 'express';
+import type { Logger } from 'winston';
 import { createLogger } from '../logger/index.js';
 import { CertsService } from '../services/certs/CertsService.js';
 
 export class CertsController {
-  private logger: Logger;
+  private readonly logger: Logger;
 
   constructor(logger: Logger) {
     this.logger = logger;
   }
 
-  parseCerts(req: Request, res: Response) {
+  async parseCerts(req: Request, res: Response): Promise<void> {
     const { edrpou } = req.body;
     if (!edrpou) {
       this.logger.error('EDRPOU is required');
-      return res.status(400).json({ error: 'EDRPOU is required' });
+      res.status(400).json({ error: 'EDRPOU is required' });
+      return;
     }
     this.logger.info(`Parsing certs for EDRPOU: ${edrpou}`);
     const certsService = new CertsService(createLogger('CertsService'));
-    certsService
-      .getCerts(edrpou)
-      .then((certs) => {
-        this.logger.info(`Successfully parsed ${certs.length} certs for EDRPOU: ${edrpou}`);
-        res.status(200).json(certs);
-      })
-      .catch((error) => {
-        this.logger.error('Error fetching certs:', error);
-        res.status(500).json({ error: 'Failed to fetch certs' });
-      });
+    try {
+      const certs = await certsService.getCerts(edrpou);
+      this.logger.info(`Successfully parsed ${certs.length} certs for EDRPOU: ${edrpou}`);
+      res.status(200).json(certs);
+    } catch (error) {
+      this.logger.error('Error fetching certs:', error);
+      res.status(500).json({ error: 'Failed to fetch certs' });
+    }
   }
 }

@@ -1,14 +1,15 @@
+import type { Logger } from 'winston';
 import { createLogger, format, transports } from 'winston';
 
-function buildDevLogger() {
+function buildDevLogger(): Logger {
   const logFormat = format.printf(({ timestamp, level, message, service, stack }) => {
     const serviceInfo = service ? `[${service}] ` : '';
-    return `${timestamp} [${level}]: ${serviceInfo}${stack || message}`;
+    return `${timestamp} [${level}]: ${serviceInfo}${stack ?? message}`;
   });
 
   const fileLogFormat = format.printf(({ timestamp, level, message, service, stack }) => {
     const serviceInfo = service ? `[${service}] ` : '';
-    return `${timestamp} [${level}]: ${serviceInfo}${stack || message}`;
+    return `${timestamp} [${level}]: ${serviceInfo}${stack ?? message}`;
   });
 
   return createLogger({
