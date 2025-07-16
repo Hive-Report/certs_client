@@ -1,12 +1,13 @@
-import { CertsServiceInterface, Cert, CertsApiResponse } from '../../types.js';
-import { Logger } from 'winston';
-import { config } from '../../config';
-import axios, { AxiosResponse } from 'axios';
+import type { CertsServiceInterface, Cert, CertsApiResponse } from '../../types.js';
+import type { Logger } from 'winston';
+import { config } from '../../config.js';
+import type { AxiosResponse } from 'axios';
+import axios from 'axios';
 
 export class CertsService implements CertsServiceInterface {
-  private apiUrl: string;
-  private apiToken: string;
-  private logger: Logger;
+  private readonly apiUrl: string;
+  private readonly apiToken: string;
+  private readonly logger: Logger;
 
   constructor(logger: Logger) {
     this.apiUrl = 'https://api.medoc.ua';
@@ -55,7 +56,7 @@ export class CertsService implements CertsServiceInterface {
     } catch (error) {
       if (axios.isAxiosError(error)) {
         const status = error.response?.status;
-        const errorMessage = `HTTP ${status}: ${error.response?.data?.message || error.message}`;
+        const errorMessage = `HTTP ${status}: ${error.response?.data?.message ?? error.message}`;
         this.logger.error(errorMessage);
         throw new Error(errorMessage);
       } else {

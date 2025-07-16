@@ -1,0 +1,6 @@
+2025-07-16 13:33:11 [info]: [CertsAPI] Server is running on PORT: 3000
+2025-07-16 13:35:43 [info]: [CertsAPI] Server is running on PORT: 3000
+2025-07-16 13:35:45 [info]: [CertsController] Getting certs for EDRPOU: 27272727
+2025-07-16 13:35:45 [info]: [CertsService] Fetching certificates for EDRPOU: 27272727
+2025-07-16 13:35:46 [info]: [CertsService] Successfully fetched 50 certificates for EDRPOU: 27272727
+2025-07-16 13:35:46 [info]: [CertsController] Successfully retrieved 50 certs for EDRPOU: 27272727

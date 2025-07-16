@@ -4,7 +4,7 @@ export interface Config {
   CERTS_API_TOKEN: string;
 }
 
-export type Cert = {
+export interface Cert {
   serial: string;
   name: string;
   start_date: string;
@@ -13,12 +13,12 @@ export type Cert = {
   storage_type: string;
   crypt: string;
   status: string;
-};
+}
 
-export type CertsApiResponse = {
+export interface CertsApiResponse {
   status: string;
   data: Cert[];
-};
+}
 
 export interface CertsServiceInterface {
   getCerts(edrpou: string): Promise<Cert[]>;

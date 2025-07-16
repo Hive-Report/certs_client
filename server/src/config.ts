@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import { Config } from 'types.js';
+import type { Config } from 'types.js';
 
 const isTestEnvironment =
   process.env.NODE_ENV === 'test' ||

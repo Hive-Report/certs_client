@@ -5,8 +5,8 @@ import router from './router/index.js';
 import { createLogger } from './logger/index.js';
 
 const app = express();
-const port = config.PORT
-const logger = createLogger("CertsAPI");
+const port = config.PORT;
+const logger = createLogger('CertsAPI');
 
 app.use(cors());
 app.use(express.json());

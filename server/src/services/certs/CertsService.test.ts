@@ -1,4 +1,5 @@
 import axios from 'axios';
+import type { Cert, CertsApiResponse, } from '../../types.js';
 
 // Mock axios
 jest.mock('axios');
@@ -23,23 +24,6 @@ jest.mock('../../config', () => ({
 
 // Import the service after mocking
 import { CertsService } from './CertsService';
-
-// Types for testing
-interface Cert {
-  serial: string;
-  name: string;
-  start_date: string;
-  end_date: string;
-  type: string;
-  storage_type: string;
-  crypt: string;
-  status: string;
-}
-
-interface CertsApiResponse {
-  status: string;
-  data: Cert[];
-}
 
 describe('CertsService', () => {
   let certsService: CertsService;
