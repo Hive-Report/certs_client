@@ -1,8 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { createLogger } from '../logger/index.js';
-import { CertsController } from '../controllers/CertsController.js'; // Adjust path as needed
+import { CertsController } from '../controllers/CertsController.js';
 
-const logger = createLogger('API Router');
 const certsController = new CertsController(createLogger('CertsController'));
 const router = Router();
 
