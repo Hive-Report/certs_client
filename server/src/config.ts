@@ -1,11 +1,5 @@
 import 'dotenv/config';
-
-interface Config {
-  PORT: string;
-  NODE_ENV: string;
-  CERTS_API_TOKEN: string;
-  JWT_SECRET: string;
-}
+import type { Config } from './types';
 
 const isTestEnvironment =
   process.env.NODE_ENV === 'test' ||
@@ -16,7 +10,7 @@ const getTestConfig = (): Config => {
   return {
     PORT: '3000',
     NODE_ENV: 'test',
-    CERTS_API_TOKEN: 'test-token',
+    CERTS_API_KEY: 'test-token',
     JWT_SECRET: 'test-secret',
   };
 };
@@ -32,7 +26,7 @@ const getProductionConfig = (): Config => {
   return {
     PORT: required('PORT', process.env.PORT) || '3000',
     NODE_ENV: required('NODE_ENV', process.env.NODE_ENV),
-    CERTS_API_TOKEN: required('CERTS_API_TOKEN', process.env.CERTS_API_TOKEN),
+    CERTS_API_KEY: required('CERTS_API_KEY', process.env.CERTS_API_KEY),
     JWT_SECRET: required('JWT_SECRET', process.env.JWT_SECRET),
   };
 };

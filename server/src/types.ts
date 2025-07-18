@@ -1,7 +1,8 @@
 export interface Config {
   PORT: string;
   NODE_ENV: string;
-  CERTS_API_TOKEN: string;
+  CERTS_API_KEY: string;
+  JWT_SECRET: string;
 }
 
 export interface Cert {

@@ -5,6 +5,7 @@ import Database from 'better-sqlite3';
 import { config } from '../config.js';
 import logger from '../logger/index.js';
 import path from 'path';
+import { fileURLToPath } from 'url';
 
 interface UserData {
   username: string;
@@ -13,7 +14,7 @@ interface UserData {
 }
 
 interface LoginData {
-  username: string;
+  email: string;
   password: string;
 }
 
@@ -34,14 +35,16 @@ interface UserResponse {
 }
 
 export class UserService {
-  private db: Database.Database;
+  private readonly db: Database.Database;
   private static readonly SALT_ROUNDS = 12;
-  private static readonly JWT_SECRET = config.JWT_SECRET ?? 'your-super-secret-jwt-key-change-in-production';
+  private static readonly JWT_SECRET = config.JWT_SECRET;
   private static readonly JWT_EXPIRES_IN = '24h';
 
   constructor() {
     // Створюємо базу даних в папці проекту
-    const dbPath = path.join(process.cwd(), 'data', 'users.db');
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = path.dirname(__filename);
+    const dbPath = path.join(__dirname, '../data/users.db');
     this.db = new Database(dbPath);
     
     // Ініціалізуємо таблицю користувачів
@@ -95,8 +98,9 @@ export class UserService {
   // Валідація даних логіну
   private validateLoginData(loginData: LoginData): Joi.ValidationResult {
     const schema = Joi.object({
-      username: Joi.string().required().messages({
-        'any.required': 'Ім\'я користувача є обов\'язковим'
+      email: Joi.string().email().required().messages({
+        'string.email': 'Невірний формат електронної пошти',
+        'any.required': 'Електронна пошта є обов\'язковою'
       }),
       password: Joi.string().required().messages({
         'any.required': 'Пароль є обов\'язковим'
@@ -238,13 +242,13 @@ export class UserService {
       }
 
       // Пошук користувача
-      const stmt = this.db.prepare('SELECT * FROM users WHERE username = ?');
-      const user = stmt.get(loginData.username) as User | undefined;
+      const stmt = this.db.prepare('SELECT * FROM users WHERE email = ?');
+      const user = stmt.get(loginData.email) as User | undefined;
       
       if (!user) {
         return {
           success: false,
-          error: 'Невірне ім\'я користувача або пароль'
+          error: 'Невірна електронна пошта або пароль'
         };
       }
 
@@ -278,7 +282,7 @@ export class UserService {
   }
 
   // Верифікація JWT токена
-  async verifyToken(token: string): Promise<{ success: boolean; user?: UserResponse; error?: string }> {
+  verifyToken(token: string): Promise<{ success: boolean; user?: UserResponse; error?: string }> {
     try {
       const decoded = jwt.verify(token, UserService.JWT_SECRET) as { id: string; username: string; email: string };
       
@@ -287,50 +291,50 @@ export class UserService {
       const user = stmt.get(parseInt(decoded.id)) as User | undefined;
       
       if (!user) {
-        return {
+        return Promise.resolve({
           success: false,
           error: 'Користувач не знайдений'
-        };
+        });
       }
 
-      return {
+      return Promise.resolve({
         success: true,
         user: this.formatUserResponse(user)
-      };
+      });
 
     } catch (error) {
       logger.error('Token verification error:', error);
-      return {
+      return Promise.resolve({
         success: false,
         error: 'Невірний або прострочений токен'
-      };
+      });
     }
   }
 
   // Отримання профілю користувача
-  async getUserProfile(userId: string): Promise<{ success: boolean; user?: UserResponse; error?: string }> {
+  getUserProfile(userId: string): Promise<{ success: boolean; user?: UserResponse; error?: string }> {
     try {
       const stmt = this.db.prepare('SELECT * FROM users WHERE id = ?');
       const user = stmt.get(parseInt(userId)) as User | undefined;
       
       if (!user) {
-        return {
+        return Promise.resolve({
           success: false,
           error: 'Користувач не знайдений'
-        };
+        });
       }
 
-      return {
+      return Promise.resolve({
         success: true,
         user: this.formatUserResponse(user)
-      };
+      });
 
     } catch (error) {
       logger.error('Get profile error:', error);
-      return {
+      return Promise.resolve({
         success: false,
         error: 'Помилка при отриманні профілю'
-      };
+      });
     }
   }
 

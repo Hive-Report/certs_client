@@ -23,12 +23,22 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
     // Отримуємо токен з заголовка Authorization
     const authHeader = req.headers.authorization;
     
-    if (!authHeader?.startsWith('Bearer ')) {
-      res.status(401).json({ error: 'Authorization token is required' });
+    if (!authHeader) {
+      res.status(401).json({ error: 'Authorization header is missing' });
+      return;
+    }
+    
+    if (!authHeader.startsWith('Bearer ')) {
+      res.status(401).json({ error: 'Invalid authorization format. Use Bearer token' });
       return;
     }
 
-    const token = authHeader.substring(7); // Видаляємо "Bearer "
+    const token = authHeader.substring(7).trim(); // Видаляємо "Bearer " і пробіли
+    
+    if (!token) {
+      res.status(401).json({ error: 'Token is empty' });
+      return;
+    }
     
     const result = await userService.verifyToken(token);
     

@@ -11,7 +11,7 @@ export class CertsService implements CertsServiceInterface {
 
   constructor(logger: Logger) {
     this.apiUrl = 'https://api.medoc.ua';
-    this.apiToken = config.CERTS_API_TOKEN;
+    this.apiToken = config.CERTS_API_KEY;
     this.logger = logger;
   }
 
