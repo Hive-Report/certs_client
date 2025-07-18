@@ -16,7 +16,7 @@ const createMockLogger = () => ({
 // Mock the actual service dependencies
 jest.mock('../../config', () => ({
   config: {
-    CERTS_API_TOKEN: 'test-token',
+    CERTS_API_KEY: 'test-token',
     PORT: '3001',
     NODE_ENV: 'test',
   },

@@ -5,7 +5,6 @@ import Database from 'better-sqlite3';
 import { config } from '../config.js';
 import logger from '../logger/index.js';
 import path from 'path';
-import { fileURLToPath } from 'url';
 
 interface UserData {
   username: string;
@@ -42,9 +41,7 @@ export class UserService {
 
   constructor() {
     // Створюємо базу даних в папці проекту
-    const __filename = fileURLToPath(import.meta.url);
-    const __dirname = path.dirname(__filename);
-    const dbPath = path.join(__dirname, '../data/users.db');
+    const dbPath = path.join(process.cwd(), 'data/users.db');
     this.db = new Database(dbPath);
     
     // Ініціалізуємо таблицю користувачів
@@ -180,9 +177,12 @@ export class UserService {
         };
       }
 
+      // Нормалізація email
+      const normalizedEmail = userData.email.toLowerCase();
+
       // Перевірка на існування користувача
       const checkStmt = this.db.prepare('SELECT * FROM users WHERE username = ? OR email = ?');
-      const existingUser = checkStmt.get(userData.username, userData.email) as User | undefined;
+      const existingUser = checkStmt.get(userData.username, normalizedEmail) as User | undefined;
 
       if (existingUser) {
         return {
@@ -202,7 +202,7 @@ export class UserService {
         VALUES (?, ?, ?)
       `);
 
-      const result = insertStmt.run(userData.username, userData.email, hashedPassword);
+      const result = insertStmt.run(userData.username, normalizedEmail, hashedPassword);
       
       // Отримання створеного користувача
       const getUserStmt = this.db.prepare('SELECT * FROM users WHERE id = ?');
@@ -241,9 +241,10 @@ export class UserService {
         };
       }
 
-      // Пошук користувача
+      // Нормалізація email і пошук користувача
+      const normalizedEmail = loginData.email.toLowerCase();
       const stmt = this.db.prepare('SELECT * FROM users WHERE email = ?');
-      const user = stmt.get(loginData.email) as User | undefined;
+      const user = stmt.get(normalizedEmail) as User | undefined;
       
       if (!user) {
         return {
