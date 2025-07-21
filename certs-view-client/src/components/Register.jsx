@@ -23,7 +23,7 @@ const Register = ({ onRegistrationSuccess }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    
+
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match');
       return;
@@ -39,8 +39,11 @@ const Register = ({ onRegistrationSuccess }) => {
       });
 
       if (data.success) {
+        localStorage.setItem(config.STORAGE_KEYS.IS_AUTHENTICATED, 'true');
+        localStorage.setItem(config.STORAGE_KEYS.USERNAME, data.user.username);
         localStorage.setItem(config.STORAGE_KEYS.AUTH_TOKEN, data.token);
         localStorage.setItem(config.STORAGE_KEYS.USER, JSON.stringify(data.user));
+        
         onRegistrationSuccess(data.user);
       } else {
         setError(data.error || 'Registration failed');
