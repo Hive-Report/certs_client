@@ -3,7 +3,7 @@ import apiService from '../services/apiService.js';
 import config from '../config/config.js';
 
 const Login = ({ onLogin, onShowRegister }) => {
-  const [credentials, setCredentials] = useState({ username: '', password: '' });
+  const [credentials, setCredentials] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
