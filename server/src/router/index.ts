@@ -6,16 +6,17 @@ import { AuthController } from '../controllers/AuthController.js';
 import { authMiddleware } from '../middleware/authMiddleware.js';
 
 const certsController = new CertsController(createLogger('CertsController'));
+const authController = new AuthController();
 const router = Router();
 
 // Публічні маршрути (без авторизації)
-router.post('/auth/register', AuthController.register);
-router.post('/auth/login', AuthController.login);
-router.post('/auth/logout', AuthController.logout);
-router.post('/auth/verify', AuthController.verify);
+router.post('/auth/register', (req, res) => authController.register(req, res));
+router.post('/auth/login', (req, res) => authController.login(req, res));
+router.post('/auth/logout', (req, res) => authController.logout(req, res));
+router.post('/auth/verify', (req, res) => authController.verify(req, res));
 
 // Захищені маршрути (з авторизацією)
-router.get('/auth/profile', authMiddleware, AuthController.getProfile);
+router.get('/auth/profile', authMiddleware, (req, res) => authController.getProfile(req, res));
 router.get('/certs/:edrpou', authMiddleware, (req: Request, res: Response) => certsController.getCerts(req, res));
 
 export default router;

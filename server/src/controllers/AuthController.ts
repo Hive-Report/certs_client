@@ -3,14 +3,23 @@ import userService from '../services/UserServiceSQLite.js';
 import logger from '../logger/index.js';
 
 export class AuthController {
-  private static readonly loginAttempts = new Map<string, { count: number; lastAttempt: number }>();
-  private static readonly MAX_LOGIN_ATTEMPTS = 5;
-  private static readonly LOCK_TIME = 15 * 60 * 1000; // 15 minutes in milliseconds
+  private loginAttempts = new Map<string, { count: number; lastAttempt: number }>();
+  private readonly MAX_LOGIN_ATTEMPTS = 5;
+  private readonly LOCK_TIME = 15 * 60 * 1000; // 15 minutes in milliseconds
+
+  constructor() {
+    // Прив'язуємо методи до екземпляру класу
+    this.login = this.login.bind(this);
+    this.register = this.register.bind(this);
+    this.logout = this.logout.bind(this);
+    this.verify = this.verify.bind(this);
+    this.getProfile = this.getProfile.bind(this);
+  }
 
   /**
    * Перевірка спроб логіну
    */
-  private static checkLoginAttempts(email: string): boolean {
+  private checkLoginAttempts(email: string): boolean {
     const now = Date.now();
     const attempts = this.loginAttempts.get(email);
 
@@ -47,7 +56,7 @@ export class AuthController {
   /**
    * Реєстрація нового користувача
    */
-  static async register(req: Request, res: Response): Promise<void> {
+  async register(req: Request, res: Response): Promise<void> {
     try {
       // Перевірка на наявність body
       if (!req.body) {
@@ -82,7 +91,7 @@ export class AuthController {
   /**
    * Авторизація користувача
    */
-  static async login(req: Request, res: Response): Promise<void> {
+  async login(req: Request, res: Response): Promise<void> {
     try {
       // Перевірка на наявність body
       if (!req.body) {
@@ -157,7 +166,7 @@ export class AuthController {
   /**
    * Логаут користувача
    */
-  static logout(req: Request, res: Response): void {
+  logout(req: Request, res: Response): void {
     try {
       // В JWT системі logout відбувається на клієнті (видалення токена)
       // Тут можна додати логіку для blacklist токенів
@@ -171,7 +180,7 @@ export class AuthController {
   /**
    * Верифікація JWT токена
    */
-  static async verify(req: Request, res: Response): Promise<void> {
+  async verify(req: Request, res: Response): Promise<void> {
     try {
       // Перевірка на наявність body
       if (!req.body) {
@@ -202,7 +211,7 @@ export class AuthController {
   /**
    * Отримання профілю користувача
    */
-  static getProfile(req: Request, res: Response): void {
+  getProfile(req: Request, res: Response): void {
     try {
       // Middleware має встановити user в req
       const user = req.user;
