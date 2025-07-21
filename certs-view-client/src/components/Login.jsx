@@ -18,9 +18,10 @@ const Login = ({ onLogin, onShowRegister }) => {
       if (data.success) {
         localStorage.setItem(config.STORAGE_KEYS.IS_AUTHENTICATED, 'true');
         localStorage.setItem(config.STORAGE_KEYS.USERNAME, data.user.username);
+        localStorage.setItem(config.STORAGE_KEYS.EMAIL, data.user.email);
         localStorage.setItem(config.STORAGE_KEYS.AUTH_TOKEN, data.token);
         localStorage.setItem(config.STORAGE_KEYS.USER, JSON.stringify(data.user));
-        onLogin(data.user.username);
+        onLogin(data.user.email);
       } else {
         setError(data.error || 'Помилка авторизації');
       }
