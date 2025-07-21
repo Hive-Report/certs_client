@@ -34,7 +34,15 @@ class ApiService {
     };
 
     try {
+      console.log('Making request to:', url, 'with options:', requestOptions);
       const response = await fetch(url, requestOptions);
+      console.log('Response:', response.status, response.statusText);
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('API Error:', errorData);
+        throw new Error(errorData.error || 'API request failed');
+      }
       
       // Якщо токен недійсний, очищаємо localStorage
       if (response.status === 401) {
