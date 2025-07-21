@@ -133,7 +133,9 @@ export class AuthController {
         return;
       }
 
+      logger.info('Attempting login for email:', email);
       const result = await userService.login({ email, password });
+      logger.info('Login result:', result.success ? 'success' : 'failed');
 
       if (result.success) {
         res.json(result);
@@ -142,7 +144,13 @@ export class AuthController {
       }
     } catch (error) {
       logger.error('Login error:', error);
-      res.status(500).json({ error: 'Internal server error' });
+      if (error instanceof Error) {
+        logger.error('Error details:', error.message, error.stack);
+      }
+      res.status(500).json({ 
+        error: 'Internal server error',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   }
 

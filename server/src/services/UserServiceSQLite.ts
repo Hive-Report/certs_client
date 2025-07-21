@@ -5,6 +5,7 @@ import Database from 'better-sqlite3';
 import { config } from '../config.js';
 import logger from '../logger/index.js';
 import path from 'path';
+import fs from 'fs';
 
 interface UserData {
   username: string;
@@ -40,12 +41,25 @@ export class UserService {
   private static readonly JWT_EXPIRES_IN = '24h';
 
   constructor() {
-    // Створюємо базу даних в папці проекту
-    const dbPath = path.join(process.cwd(), 'data/users.db');
-    this.db = new Database(dbPath);
-    
-    // Ініціалізуємо таблицю користувачів
-    this.initializeDatabase();
+    try {
+      // Створюємо директорію для бази даних, якщо вона не існує
+      const dataDir = path.join(process.cwd(), 'data');
+      if (!fs.existsSync(dataDir)) {
+        fs.mkdirSync(dataDir, { recursive: true });
+      }
+      
+      // Створюємо базу даних в папці проекту
+      const dbPath = path.join(dataDir, 'users.db');
+      logger.info('Database path:', dbPath);
+      
+      this.db = new Database(dbPath);
+      
+      // Ініціалізуємо таблицю користувачів
+      this.initializeDatabase();
+    } catch (error) {
+      logger.error('Error initializing database:', error);
+      throw error;
+    }
   }
 
   private initializeDatabase(): void {
@@ -231,9 +245,12 @@ export class UserService {
   // Авторизація користувача
   async login(loginData: LoginData): Promise<{ success: boolean; user?: UserResponse; token?: string; error?: string; details?: Joi.ValidationErrorItem[] }> {
     try {
+      logger.info('Login attempt for email:', loginData.email);
+      
       // Валідація вхідних даних
       const validation = this.validateLoginData(loginData);
       if (validation.error) {
+        logger.error('Login validation error:', validation.error);
         return {
           success: false,
           error: 'Помилка валідації даних',
@@ -243,8 +260,12 @@ export class UserService {
 
       // Нормалізація email і пошук користувача
       const normalizedEmail = loginData.email.toLowerCase();
+      logger.info('Looking for user with email:', normalizedEmail);
+      
       const stmt = this.db.prepare('SELECT * FROM users WHERE email = ?');
       const user = stmt.get(normalizedEmail) as User | undefined;
+      
+      logger.info('User found:', user ? 'yes' : 'no');
       
       if (!user) {
         return {
