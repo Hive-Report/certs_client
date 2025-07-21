@@ -18,10 +18,9 @@ const Login = ({ onLogin, onShowRegister }) => {
       if (data.success) {
         localStorage.setItem(config.STORAGE_KEYS.IS_AUTHENTICATED, 'true');
         localStorage.setItem(config.STORAGE_KEYS.USERNAME, data.user.username);
-        localStorage.setItem(config.STORAGE_KEYS.EMAIL, data.user.email);
         localStorage.setItem(config.STORAGE_KEYS.AUTH_TOKEN, data.token);
         localStorage.setItem(config.STORAGE_KEYS.USER, JSON.stringify(data.user));
-        onLogin(data.user.email);
+        onLogin(data.user.username);
       } else {
         setError(data.error || 'Помилка авторизації');
       }
@@ -52,14 +51,14 @@ const Login = ({ onLogin, onShowRegister }) => {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Пошта
+                Електронна пошта
               </label>
               <input
-                type="text"
+                type="email"
                 value={credentials.email}
                 onChange={(e) => setCredentials({...credentials, email: e.target.value})}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                placeholder="Введіть пошту"
+                placeholder="Введіть електронну пошту"
                 required
               />
             </div>

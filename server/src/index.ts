@@ -9,7 +9,10 @@ const app = express();
 const port = config.PORT;
 const logger = createLogger('CertsAPI');
 
-app.use(cors());
+app.use(cors({
+  origin: ['http://localhost:3002', 'https://certs-client.onrender.com'],
+  credentials: true
+}));
 app.use(express.json());
 
 app.use('/api', router);

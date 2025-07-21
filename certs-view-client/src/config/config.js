@@ -34,6 +34,4 @@ const config = {
   }
 };
 
-console.log("API_BASE_URL:", config.API_BASE_URL);
-
 export default config;
