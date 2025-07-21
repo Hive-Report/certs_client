@@ -233,7 +233,3 @@ docker stats
 3. Commit зміни
 4. Push до branch
 5. Створіть Pull Request
-
-## 📄 Ліцензія
-
-MIT License
