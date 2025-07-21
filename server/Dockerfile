@@ -1,4 +1,4 @@
-FROM node:18-alpine
+FROM node:20-alpine
 
 WORKDIR /app
 
@@ -6,12 +6,14 @@ COPY package*.json ./
 COPY tsconfig.json ./
 COPY . .
 
-RUN npm ci \
+RUN apk add --no-cache python3 make g++ \
+ && npm ci \
  && npm run build \
- && npm prune --production
+ && npm prune --production \
+ && apk del python3 make g++
 
 RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
-RUN mkdir -p /app/logs && chown -R nodejs:nodejs /app/logs
+RUN mkdir -p /app/logs && chown -R nodejs:nodejs /app
 
 USER nodejs
 
