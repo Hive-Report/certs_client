@@ -14,6 +14,8 @@ RUN apk add --no-cache python3 make g++ \
 
 RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
 RUN mkdir -p /app/logs && chown -R nodejs:nodejs /app
+RUN mkdir -p /app/data && chown -R nodejs:nodejs /app/data
+
 
 USER nodejs
 
