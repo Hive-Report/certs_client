@@ -42,7 +42,7 @@ export class AuthController {
   /**
    * Оновлення лічильника спроб логіну
    */
-  private static updateLoginAttempts(email: string): void {
+  private updateLoginAttempts(email: string): void {
     const attempts = this.loginAttempts.get(email);
     
     if (attempts) {
@@ -117,6 +117,9 @@ export class AuthController {
         });
         return;
       }
+
+      // Оновлюємо лічильник спроб
+      this.updateLoginAttempts(email);
 
       // Валідація даних
       if (typeof email !== 'string' || typeof password !== 'string') {
