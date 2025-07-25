@@ -20,7 +20,7 @@ export default function SearchCerts() {
     end_date_to: ''
   });
   const [columnSettings, setColumnSettings] = useState({
-    serial: { visible: true, width: 200 },
+    serial: { visible: true, width: 350 },
     name: { visible: true, width: 250 },
     start_date: { visible: true, width: 150 },
     end_date: { visible: true, width: 150 },
@@ -159,7 +159,7 @@ export default function SearchCerts() {
 
   const resetColumnSettings = () => {
     setColumnSettings({
-      serial: { visible: true, width: 200 },
+      serial: { visible: true, width: 350 },
       name: { visible: true, width: 250 },
       start_date: { visible: true, width: 150 },
       end_date: { visible: true, width: 150 },
@@ -300,6 +300,29 @@ export default function SearchCerts() {
     } catch {
       return dateStr;
     }
+  };
+
+  // Функція для нормалізації серійного номера
+  const formatSerial = (serial) => {
+    if (!serial) return '-';
+    
+    let hexSerial = serial.toString();
+    
+    // Якщо це короткий hex (починається з 0x), конвертуємо до повного формату
+    if (hexSerial.startsWith('0x')) {
+      hexSerial = hexSerial.slice(2); // Видаляємо "0x"
+    }
+    
+    // Якщо це десятковий номер, конвертуємо до hex
+    if (/^\d+$/.test(hexSerial)) {
+      hexSerial = parseInt(hexSerial, 10).toString(16);
+    }
+    
+    // Доповнюємо до 32 символів (128 біт) нулями зліва
+    hexSerial = hexSerial.padStart(32, '0');
+    
+    // Форматуємо з пробілами для кращої читабельності (кожні 4 символи)
+    return hexSerial;
   };
 
   return (
@@ -630,6 +653,8 @@ export default function SearchCerts() {
                                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(cert.status)}`}>
                                   {getStatusText(cert.status)}
                                 </span>
+                              ) : column.key === 'serial' ? (
+                                formatSerial(cert.serial)
                               ) : column.key === 'start_date' || column.key === 'end_date' ? (
                                 formatDate(cert[column.key])
                               ) : (
