@@ -39,7 +39,7 @@ export async function googleTokenMiddleware(req: Request, res: Response, next: N
     // Перевіряємо домен
     const allowedDomains = (config.ALLOWED_EMAIL_DOMAINS || '').split(',').map(d => d.trim()).filter(Boolean);
     if (!payload.hd || !allowedDomains.includes(payload.hd)) {
-      res.status(403).json({ error: 'Доступ дозволено лише для доменів: ' + allowedDomains.join(', ') });
+      res.status(403).json({ error: 'Access is allowed only for domains: ' + allowedDomains.join(', ') });
       return;
     }
     // Перевіряємо обов'язкові поля
