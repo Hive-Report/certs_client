@@ -25,9 +25,6 @@ COPY --from=builder /app/build /usr/share/nginx/html
 # Копіюємо конфігурацію nginx
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Копіюємо файл оточення
-COPY .env ./
-
 # Відкриваємо порт
 EXPOSE 80
 
