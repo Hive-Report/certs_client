@@ -10,7 +10,8 @@ const Login = ({ onLogin, onShowRegister }) => {
     localStorage.setItem(config.STORAGE_KEYS.IS_AUTHENTICATED, "true");
     localStorage.setItem(config.STORAGE_KEYS.USERNAME, user.username || user.email);
     localStorage.setItem(config.STORAGE_KEYS.USER, JSON.stringify(user));
-    if (typeof onLogin === "function") onLogin(user.username || user.email);
+    localStorage.setItem('avatarUrl', user.picture || "");
+    if (typeof onLogin === "function") onLogin(user.username || user.email, user.picture || "");
   };
 
   const handleGoogleError = (error) => {
