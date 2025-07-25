@@ -4,6 +4,7 @@ export interface Config {
   CERTS_API_KEY: string;
   JWT_SECRET: string;
   ALLOWED_EMAIL_DOMAINS: string;
+  GOOGLE_CLIENT_ID: string;
 }
 
 export interface Cert {

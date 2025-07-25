@@ -145,6 +145,15 @@ class ApiService {
     return response.json();
   }
 
+  /**
+   * Надсилання Google ID Token на бекенд
+   */
+  async postGoogleToken(idToken) {
+    // Використовуємо endpoint /api/auth/google
+    const response = await this.post('/api/auth/google', { idToken });
+    return response.json();
+  }
+
   // === CERTS ENDPOINTS ===
 
   /**

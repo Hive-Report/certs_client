@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  server:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: |
+          cd server
+          npm ci
+
+      - name: Lint
+        run: |
+          cd server
+          npm run lint
+
+      - name: Run tests
+        run: |
+          cd server
+          npm test
+
+  client:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: |
+          cd certs-view-client
+          npm ci
+
+      - name: Run tests
+        run: |
+          cd certs-view-client
+          npm test -- --watchAll=false --passWithNoTests
+
+      - name: Build
+        run: |
+          cd certs-view-client
+          npm run build
