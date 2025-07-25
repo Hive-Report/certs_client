@@ -150,7 +150,7 @@ export class AuthController {
       logger.info('Login result:', result.success ? 'success' : 'failed');
 
       if (result.success) {
-        res.json(result);
+        res.status(200).json(result);
       } else {
         res.status(401).json(result);
       }
@@ -173,7 +173,7 @@ export class AuthController {
     try {
       // В JWT системі logout відбувається на клієнті (видалення токена)
       // Тут можна додати логіку для blacklist токенів
-      res.json({ success: true, message: 'Logged out successfully' });
+      res.status(200).json({ success: true, message: 'Logged out successfully' });
     } catch (error) {
       logger.error('Logout error:', error);
       res.status(500).json({ error: 'Internal server error' });
@@ -201,7 +201,7 @@ export class AuthController {
       const result = await userService.verifyToken(token);
 
       if (result.success) {
-        res.json(result);
+        res.status(200).json(result);
       } else {
         res.status(401).json(result);
       }
@@ -224,7 +224,7 @@ export class AuthController {
         return;
       }
 
-      res.json({
+      res.status(200).json({
         success: true,
         user: {
           id: user.id,

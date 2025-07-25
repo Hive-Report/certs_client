@@ -48,8 +48,10 @@ export class UserService {
         fs.mkdirSync(dataDir, { recursive: true });
       }
       
-      // Створюємо базу даних в папці проекту
-      const dbPath = path.join(dataDir, 'users.db');
+      const isTest = process.env.NODE_ENV === 'test';
+      const dbFileName = isTest ? 'test_users.db' : 'users.db';
+      const dbPath = path.join(dataDir, dbFileName);
+      
       logger.info('Database path:', dbPath);
       
       this.db = new Database(dbPath);
@@ -156,39 +158,7 @@ export class UserService {
     };
   }
 
-  // Створення демо користувачів
-  async initializeDemoUsers(): Promise<void> {
-    try {
-      const stmt = this.db.prepare('SELECT COUNT(*) as count FROM users');
-      const result = stmt.get() as { count: number };
-      
-      if (result.count > 0) {
-        logger.info('Demo users already exist');
-        return;
-      }
 
-      const demoUsers = [
-        {
-          username: 'admin',
-          email: 'admin@hive.report',
-          password: 'Admin123'
-        },
-        {
-          username: 'user',
-          email: 'user@hive.report',
-          password: 'User123'
-        }
-      ];
-
-      for (const userData of demoUsers) {
-        await this.register(userData);
-      }
-
-      logger.info('Demo users created successfully');
-    } catch (error) {
-      logger.error('Error initializing demo users:', error);
-    }
-  }
 
   // Реєстрація нового користувача
   async register(userData: UserData): Promise<{ success: boolean; user?: UserResponse; token?: string; error?: string; details?: Joi.ValidationErrorItem[] }> {
@@ -375,6 +345,14 @@ export class UserService {
   // Закриття з'єднання з базою
   close(): void {
     this.db.close();
+  }
+
+  // Очищення тестових даних (тільки для тестів)
+  clearTestData(): void {
+    if (process.env.NODE_ENV === 'test' || process.env.JEST_WORKER_ID !== undefined) {
+      this.db.exec('DELETE FROM users');
+      logger.info('Test data cleared');
+    }
   }
 }
 

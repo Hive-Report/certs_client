@@ -12,7 +12,7 @@ const getTestConfig = (): Config => {
     NODE_ENV: 'test',
     CERTS_API_KEY: 'test-token',
     JWT_SECRET: 'test-secret',
-    ALLOWED_EMAIL_DOMAINS: 'test.com',
+    ALLOWED_EMAIL_DOMAINS: 'test.com,example.com',
   };
 };
 
@@ -23,6 +23,11 @@ const getProductionConfig = (): Config => {
     }
     return value as string;
   };
+
+  const port = process.env.PORT ?? '3001';
+  if (isNaN(Number(port))) {
+    throw new Error('PORT must be a valid number');
+  }
 
   return {
     PORT: required('PORT', process.env.PORT),
