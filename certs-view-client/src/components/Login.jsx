@@ -48,7 +48,13 @@ const Login = ({ onLogin, onShowRegister }) => {
             <Card.Text className="text-muted">Пошук сертифікатів електронного підпису</Card.Text>
           </div>
           <div className="mt-5 mb-3">
-            <GoogleLoginButton onSuccess={handleGoogleSuccess} onError={handleGoogleError} />
+            {window.google ? (
+              <GoogleLoginButton onSuccess={handleGoogleSuccess} onError={handleGoogleError} />
+            ) : (
+              <div className="text-danger" style={{ fontSize: '1rem', fontWeight: 500, marginTop: 24 }}>
+                Не вдалося завантажити кнопку входу Google.<br />Будь ласка, перезавантажте сторінку!
+              </div>
+            )}
           </div>
           {error && (
             <Alert variant="danger" className="mt-3">
