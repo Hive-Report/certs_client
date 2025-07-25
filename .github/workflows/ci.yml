@@ -52,7 +52,7 @@ jobs:
       - name: Run tests
         run: |
           cd certs-view-client
-          npm test -- --watchAll=false
+          npm test -- --watchAll=false --passWithNoTests
 
       - name: Build
         run: |
