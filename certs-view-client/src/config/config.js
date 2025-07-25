@@ -2,6 +2,7 @@
 const config = {
   // API Configuration - читаємо з build-time змінних
   API_BASE_URL: process.env.REACT_APP_API_URL || 'https://certs-api.onrender.com',
+  GOOGLE_CLIENT_ID: process.env.REACT_APP_GOOGLE_CLIENT_ID,
   API_ENDPOINTS: {
     AUTH: {
       LOGIN: '/api/auth/login',
