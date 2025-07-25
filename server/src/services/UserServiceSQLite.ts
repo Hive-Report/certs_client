@@ -43,19 +43,24 @@ export class UserService {
   constructor() {
     try {
       // Створюємо директорію для бази даних, якщо вона не існує
-      const dataDir = path.join(process.cwd(), 'data');
-      if (!fs.existsSync(dataDir)) {
-        fs.mkdirSync(dataDir, { recursive: true });
+      let dbPath: string;
+      if (process.env.DB_PATH) {
+        dbPath = process.env.DB_PATH;
+        const dbDir = path.dirname(dbPath);
+        if (!fs.existsSync(dbDir)) {
+          fs.mkdirSync(dbDir, { recursive: true });
+        }
+      } else {
+        const dataDir = path.join(process.cwd(), 'data');
+        if (!fs.existsSync(dataDir)) {
+          fs.mkdirSync(dataDir, { recursive: true });
+        }
+        const isTest = process.env.NODE_ENV === 'test';
+        const dbFileName = isTest ? 'test_users.db' : 'users.db';
+        dbPath = path.join(dataDir, dbFileName);
       }
-      
-      const isTest = process.env.NODE_ENV === 'test';
-      const dbFileName = isTest ? 'test_users.db' : 'users.db';
-      const dbPath = path.join(dataDir, dbFileName);
-      
       logger.info('Database path:', dbPath);
-      
       this.db = new Database(dbPath);
-      
       // Ініціалізуємо таблицю користувачів
       this.initializeDatabase();
     } catch (error) {

@@ -1,4 +1,5 @@
 import request from 'supertest';
+import { setTimeout } from 'timers/promises';
 import express from 'express';
 import cors from 'cors';
 import router from './router/index.js';
@@ -23,12 +24,13 @@ describe('API Integration Tests', () => {
     app.use('/api', router);
   });
 
-  afterAll(() => {
+  afterAll(async () => {
     userService.close();
+    // Дати час для закриття файлу
+    await setTimeout(100);
     if (fs.existsSync(testDbPath)) {
       fs.unlinkSync(testDbPath);
     }
-    
     // Спробуємо видалити тестову базу даних після закриття з'єднання
     const testDbFile = path.join(process.cwd(), 'data', 'test_users.db');
     try {
