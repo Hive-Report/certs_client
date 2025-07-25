@@ -3,6 +3,7 @@ export interface Config {
   NODE_ENV: string;
   CERTS_API_KEY: string;
   JWT_SECRET: string;
+  ALLOWED_EMAIL_DOMAINS: string;
 }
 
 export interface Cert {

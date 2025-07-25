@@ -3,7 +3,7 @@ import userService from '../services/UserServiceSQLite.js';
 import logger from '../logger/index.js';
 
 export class AuthController {
-  private loginAttempts = new Map<string, { count: number; lastAttempt: number }>();
+  private readonly loginAttempts = new Map<string, { count: number; lastAttempt: number }>();
   private readonly MAX_LOGIN_ATTEMPTS = 5;
   private readonly LOCK_TIME = 15 * 60 * 1000; // 15 minutes in milliseconds
 
