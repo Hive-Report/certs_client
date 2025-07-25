@@ -302,27 +302,10 @@ export default function SearchCerts() {
     }
   };
 
-  // Функція для нормалізації серійного номера
+  // Функція для відображення серійного номера як є
   const formatSerial = (serial) => {
     if (!serial) return '-';
-    
-    let hexSerial = serial.toString();
-    
-    // Якщо це короткий hex (починається з 0x), конвертуємо до повного формату
-    if (hexSerial.startsWith('0x')) {
-      hexSerial = hexSerial.slice(2); // Видаляємо "0x"
-    }
-    
-    // Якщо це десятковий номер, конвертуємо до hex
-    if (/^\d+$/.test(hexSerial)) {
-      hexSerial = parseInt(hexSerial, 10).toString(16);
-    }
-    
-    // Доповнюємо до 32 символів (128 біт) нулями зліва
-    hexSerial = hexSerial.padStart(32, '0');
-    
-    // Форматуємо з пробілами для кращої читабельності (кожні 4 символи)
-    return hexSerial;
+    return serial.toString();
   };
 
   return (
@@ -367,7 +350,7 @@ export default function SearchCerts() {
 
         {!loading && data.length === 0 && search.trim() && !error && (
           <div className="bg-white rounded-lg shadow-sm border p-12 text-center">
-            <div className="text-gray-400 text-6xl mb-4">🔍</div>
+            <div className="text-gray-400 mb-4" style={{ fontSize: '4rem' }}>🔍</div>
             <h3 className="text-lg font-medium text-gray-900 mb-2">Результатів не знайдено</h3>
             <p className="text-gray-600">
               Спробуйте змінити ЄДРПОУ або перевірте правильність введення
@@ -584,7 +567,7 @@ export default function SearchCerts() {
             {/* Таблиця */}
             {filteredAndSortedData.length === 0 ? (
               <div className="bg-white rounded-lg shadow-sm border p-12 text-center">
-                <div className="text-gray-400 text-6xl mb-4">🔍</div>
+                <div className="text-gray-400 mb-4" style={{ fontSize: '4rem' }}>🔍</div>
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
                   Немає сертифікатів за вашими фільтрами
                 </h3>
