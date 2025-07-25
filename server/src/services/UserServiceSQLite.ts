@@ -43,17 +43,24 @@ export class UserService {
   constructor() {
     try {
       // Створюємо директорію для бази даних, якщо вона не існує
-      const dataDir = path.join(process.cwd(), 'data');
-      if (!fs.existsSync(dataDir)) {
-        fs.mkdirSync(dataDir, { recursive: true });
+      let dbPath: string;
+      if (process.env.DB_PATH) {
+        dbPath = process.env.DB_PATH;
+        const dbDir = path.dirname(dbPath);
+        if (!fs.existsSync(dbDir)) {
+          fs.mkdirSync(dbDir, { recursive: true });
+        }
+      } else {
+        const dataDir = path.join(process.cwd(), 'data');
+        if (!fs.existsSync(dataDir)) {
+          fs.mkdirSync(dataDir, { recursive: true });
+        }
+        const isTest = process.env.NODE_ENV === 'test';
+        const dbFileName = isTest ? 'test_users.db' : 'users.db';
+        dbPath = path.join(dataDir, dbFileName);
       }
-      
-      // Створюємо базу даних в папці проекту
-      const dbPath = path.join(dataDir, 'users.db');
       logger.info('Database path:', dbPath);
-      
       this.db = new Database(dbPath);
-      
       // Ініціалізуємо таблицю користувачів
       this.initializeDatabase();
     } catch (error) {
@@ -92,8 +99,20 @@ export class UserService {
         'string.max': 'Ім\'я користувача не повинно перевищувати 50 символів',
         'any.required': 'Ім\'я користувача є обов\'язковим'
       }),
-      email: Joi.string().email().required().messages({
+      email: Joi.string().email().required().custom((value, helpers) => {
+        const allowedDomains = config.ALLOWED_EMAIL_DOMAINS?.split(',') ?? [];
+        const emailDomain = value.split('@')[1];
+        
+        if (!allowedDomains.includes(emailDomain)) {
+          return helpers.error('string.domain', { 
+            allowedDomains: allowedDomains.join(', ') 
+          });
+        }
+        
+        return value;
+      }).messages({
         'string.email': 'Невірний формат електронної пошти',
+        'string.domain': 'Реєстрація не дозволена.',
         'any.required': 'Електронна пошта є обов\'язковою'
       }),
       password: Joi.string().min(8).pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/).required().messages({
@@ -144,39 +163,7 @@ export class UserService {
     };
   }
 
-  // Створення демо користувачів
-  async initializeDemoUsers(): Promise<void> {
-    try {
-      const stmt = this.db.prepare('SELECT COUNT(*) as count FROM users');
-      const result = stmt.get() as { count: number };
-      
-      if (result.count > 0) {
-        logger.info('Demo users already exist');
-        return;
-      }
 
-      const demoUsers = [
-        {
-          username: 'admin',
-          email: 'admin@example.com',
-          password: 'Admin123'
-        },
-        {
-          username: 'user',
-          email: 'user@example.com',
-          password: 'User123'
-        }
-      ];
-
-      for (const userData of demoUsers) {
-        await this.register(userData);
-      }
-
-      logger.info('Demo users created successfully');
-    } catch (error) {
-      logger.error('Error initializing demo users:', error);
-    }
-  }
 
   // Реєстрація нового користувача
   async register(userData: UserData): Promise<{ success: boolean; user?: UserResponse; token?: string; error?: string; details?: Joi.ValidationErrorItem[] }> {
@@ -363,6 +350,14 @@ export class UserService {
   // Закриття з'єднання з базою
   close(): void {
     this.db.close();
+  }
+
+  // Очищення тестових даних (тільки для тестів)
+  clearTestData(): void {
+    if (process.env.NODE_ENV === 'test' || process.env.JEST_WORKER_ID !== undefined) {
+      this.db.exec('DELETE FROM users');
+      logger.info('Test data cleared');
+    }
   }
 }
 

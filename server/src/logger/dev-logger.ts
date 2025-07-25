@@ -23,7 +23,7 @@ function buildDevLogger(): Logger {
         format: format.combine(format.colorize(), logFormat),
       }),
       new transports.File({
-        filename: 'logs/dev.log',
+        filename: '/app/logs/dev.log',
         format: fileLogFormat,
       }),
     ],

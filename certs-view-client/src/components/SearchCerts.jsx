@@ -20,7 +20,7 @@ export default function SearchCerts() {
     end_date_to: ''
   });
   const [columnSettings, setColumnSettings] = useState({
-    serial: { visible: true, width: 200 },
+    serial: { visible: true, width: 350 },
     name: { visible: true, width: 250 },
     start_date: { visible: true, width: 150 },
     end_date: { visible: true, width: 150 },
@@ -159,7 +159,7 @@ export default function SearchCerts() {
 
   const resetColumnSettings = () => {
     setColumnSettings({
-      serial: { visible: true, width: 200 },
+      serial: { visible: true, width: 350 },
       name: { visible: true, width: 250 },
       start_date: { visible: true, width: 150 },
       end_date: { visible: true, width: 150 },
@@ -302,6 +302,12 @@ export default function SearchCerts() {
     }
   };
 
+  // Функція для відображення серійного номера як є
+  const formatSerial = (serial) => {
+    if (!serial) return '-';
+    return serial.toString();
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto p-6">
@@ -344,7 +350,7 @@ export default function SearchCerts() {
 
         {!loading && data.length === 0 && search.trim() && !error && (
           <div className="bg-white rounded-lg shadow-sm border p-12 text-center">
-            <div className="text-gray-400 text-6xl mb-4">🔍</div>
+            <div className="text-gray-400 mb-4" style={{ fontSize: '4rem' }}>🔍</div>
             <h3 className="text-lg font-medium text-gray-900 mb-2">Результатів не знайдено</h3>
             <p className="text-gray-600">
               Спробуйте змінити ЄДРПОУ або перевірте правильність введення
@@ -561,7 +567,7 @@ export default function SearchCerts() {
             {/* Таблиця */}
             {filteredAndSortedData.length === 0 ? (
               <div className="bg-white rounded-lg shadow-sm border p-12 text-center">
-                <div className="text-gray-400 text-6xl mb-4">🔍</div>
+                <div className="text-gray-400 mb-4" style={{ fontSize: '4rem' }}>🔍</div>
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
                   Немає сертифікатів за вашими фільтрами
                 </h3>
@@ -630,6 +636,8 @@ export default function SearchCerts() {
                                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(cert.status)}`}>
                                   {getStatusText(cert.status)}
                                 </span>
+                              ) : column.key === 'serial' ? (
+                                formatSerial(cert.serial)
                               ) : column.key === 'start_date' || column.key === 'end_date' ? (
                                 formatDate(cert[column.key])
                               ) : (

@@ -28,13 +28,27 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
       return;
     }
     
-    if (!authHeader.startsWith('Bearer ')) {
+    // Обрізаємо пробіли з початку і кінця
+    const trimmedHeader = authHeader.trim();
+    
+    if (!trimmedHeader.startsWith('Bearer')) {
       res.status(401).json({ error: 'Invalid authorization format. Use Bearer token' });
       return;
     }
 
-    const token = authHeader.substring(7).trim(); // Видаляємо "Bearer " і пробіли
-    
+    // Перевіряємо чи є пробіл після Bearer і витягуємо токен
+    if (trimmedHeader.length === 6) { // "Bearer" має 6 символів
+      res.status(401).json({ error: 'Token is empty' });
+      return;
+    }
+
+    if (trimmedHeader.charAt(6) !== ' ') {
+      res.status(401).json({ error: 'Invalid authorization format. Use Bearer token' });
+      return;
+    }
+
+    const token = trimmedHeader.substring(7).trim(); // Видаляємо "Bearer " і обрізаємо пробіли
+        
     if (!token) {
       res.status(401).json({ error: 'Token is empty' });
       return;

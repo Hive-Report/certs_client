@@ -1,7 +1,7 @@
 // Configuration for the application
 const config = {
-  // API Configuration
-  API_BASE_URL: "https://certs-api.onrender.com",
+  // API Configuration - читаємо з build-time змінних
+  API_BASE_URL: process.env.REACT_APP_API_URL || 'https://certs-api.onrender.com',
   API_ENDPOINTS: {
     AUTH: {
       LOGIN: '/api/auth/login',
