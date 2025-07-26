@@ -6,7 +6,6 @@ import { config } from '../config.js';
 const client = new OAuth2Client(config.GOOGLE_CLIENT_ID);
 
 function extractGoogleUser(idToken: string) {
-    console.log('CLIENT_ID:', process.env.CLIENT_ID);
   return client.verifyIdToken({ idToken, audience: config.GOOGLE_CLIENT_ID })
     .then(ticket => {
       const payload = ticket.getPayload();
