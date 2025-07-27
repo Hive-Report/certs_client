@@ -11,8 +11,6 @@ function App() {
   const [avatarUrl, setAvatarUrl] = useState('');
   const [showRegister, setShowRegister] = useState(false);
 
-  console.log('App initialized with config:', config);
-
   useEffect(() => {
     // Перевіряємо чи користувач вже авторизований
     const authStatus = localStorage.getItem(config.STORAGE_KEYS.IS_AUTHENTICATED);
