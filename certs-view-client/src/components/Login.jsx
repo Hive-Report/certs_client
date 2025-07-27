@@ -47,7 +47,7 @@ const Login = ({ onLogin, onShowRegister }) => {
             <Card.Title as="h1" className="mb-2" style={{ fontSize: '2rem', fontWeight: 'bold' }}>Вхід до системи</Card.Title>
             <Card.Text className="text-muted">Пошук сертифікатів електронного підпису</Card.Text>
           </div>
-          <div className="mt-5 mb-3 d-flex justify-content-center align-items-center">
+          <div className="mt-5 mb-3 google-login-center">
             {window.google ? (
               <GoogleLoginButton onSuccess={handleGoogleSuccess} onError={handleGoogleError} />
             ) : (

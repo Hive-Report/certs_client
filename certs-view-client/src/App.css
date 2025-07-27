@@ -36,3 +36,15 @@
     transform: rotate(360deg);
   }
 }
+
+.google-login-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.google-login-center .S9gUrf-YoZ4jf,
+.google-login-center iframe {
+  margin: 0 auto !important;
+  display: block !important;
+}
