@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Image, Button, Navbar, ButtonGroup } from 'react-bootstrap';
+import { Image, Button, Navbar, Container } from 'react-bootstrap';
 
 const Header = ({ username, avatarUrl, onLogout }) => {
   const [avatarError, setAvatarError] = useState(false);
@@ -10,9 +10,7 @@ const Header = ({ username, avatarUrl, onLogout }) => {
       if (token) {
         await fetch('/api/auth/logout', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ token }),
         });
       }
@@ -26,43 +24,49 @@ const Header = ({ username, avatarUrl, onLogout }) => {
   return (
     <Navbar
       expand="lg"
-      fluid
-      className="shadow-sm border-bottom bg-white"
-      style={{ minHeight: '64px', width: 'auto', padding: '0rem 5rem', marginBottom: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+      bg="white"
+      variant="light"
+      className="shadow-sm border-bottom"
+      style={{ minHeight: 64 }}
     >
-        {/* Left block */}
-        <Navbar.Brand
-          href="/"
-          className="d-flex align-items-center gap-3"
-          style={{ color: '#1f2937', fontWeight: 600, fontSize: '1.2rem', letterSpacing: '0.5px' }}
-        >
+      <Container fluid style={{ padding: '0 3rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        {/* Left section: logo */}
+        <Navbar.Brand href="/" className="d-flex align-items-center gap-3" style={{ fontWeight: 600, fontSize: '1.25rem', color: '#1f2937' }}>
           <Image
-          href="/"
-          src="/hive_logo.jpg" 
-          alt="Hive Report" 
-          thumbnail
-          rounded
-          height={100}
-          width={100}
-          style={{ objectFit: 'contain' }}
-        />
+            src="/hive_logo.jpg"
+            alt="Hive Report"
+            rounded
+            height={64}
+            width={64}
+            style={{ objectFit: 'contain' }}
+          />
+          <span>Hive Report</span>
         </Navbar.Brand>
 
-        {/* Right block */}
-        <Navbar.Collapse className="d-flex justify-content-center align-items-center gap-3">
-          <Navbar.Text
-            style={{
-              color: "#374151",
-              fontWeight: 500,
-              fontSize: "1.05rem",
-              margin: '0 1rem',
-            }}
-          >
+        {/* Right section: username, avatar, logout button */}
+        <div className="d-flex align-items-center gap-3">
+          <Navbar.Text style={{ color: '#374151', fontWeight: 500, fontSize: '1.1rem' }}>
             {username}
           </Navbar.Text>
+
           {!avatarUrl || avatarError ? (
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 40, height: 40, backgroundColor: '#e5e7eb', borderRadius: '50%', objectFit: 'cover' }}>
-              <span style={{ color: '#6b7280', fontSize: 20 }}>:)</span>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 40,
+                height: 40,
+                backgroundColor: '#e5e7eb',
+                borderRadius: '50%',
+                color: '#6b7280',
+                fontSize: 24,
+                userSelect: 'none',
+                boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
+              }}
+            >
+              {/* fallback emoji або іконка */}
+              🙂
             </div>
           ) : (
             <Image
@@ -71,18 +75,21 @@ const Header = ({ username, avatarUrl, onLogout }) => {
               height={40}
               width={40}
               onError={() => setAvatarError(true)}
-              style={{ objectFit: 'cover', background: '#eee', border: '1px solid #e5e7eb', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}
+              style={{ objectFit: 'cover', border: '1px solid #e5e7eb', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}
             />
           )}
+
           <Button
-            variant="warning" 
-            size="sm" 
-            style={{ fontWeight: 500, marginLeft: 12 }} 
+            variant="warning"
+            size="sm"
+            style={{ fontWeight: 600 }}
             onClick={handleLogout}
+            aria-label="Logout"
           >
             Вихід
           </Button>
-        </Navbar.Collapse>
+        </div>
+      </Container>
     </Navbar>
   );
 };

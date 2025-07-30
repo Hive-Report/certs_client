@@ -28,7 +28,6 @@ const Login = ({ onLogin, onShowRegister }) => {
               <Image
                 src="/hive_logo.jpg"
                 alt="Hive Report"
-                thumbnail
                 rounded
                 height={100}
                 width={100}
@@ -37,7 +36,6 @@ const Login = ({ onLogin, onShowRegister }) => {
               <Image
                 src="/acsk_logo.png"
                 alt="ACSK Logo"
-                thumbnail
                 rounded
                 height={80}
                 width={80}
