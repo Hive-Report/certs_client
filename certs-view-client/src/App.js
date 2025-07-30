@@ -4,6 +4,7 @@ import Login from './components/Login';
 import Register from './components/Register';
 import Header from './components/Header';
 import config from './config/config.js';
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);

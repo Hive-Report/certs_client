@@ -1,16 +1,16 @@
-import React from 'react';
-import { Container, Image, Button } from 'react-bootstrap';
+import React, { useState } from 'react';
+import { Image, Button, Navbar, Container } from 'react-bootstrap';
 
 const Header = ({ username, avatarUrl, onLogout }) => {
+  const [avatarError, setAvatarError] = useState(false);
+
   const handleLogout = async () => {
     try {
       const token = localStorage.getItem('authToken');
       if (token) {
         await fetch('/api/auth/logout', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ token }),
         });
       }
@@ -22,29 +22,75 @@ const Header = ({ username, avatarUrl, onLogout }) => {
   };
 
   return (
-    <header className="bg-white shadow-sm border-bottom" style={{ width: '100%', padding: 0 }}>
-      <Container fluid style={{ maxWidth: 1200, padding: '0.5rem 2rem' }}>
-        <div className="d-flex align-items-center justify-content-between" style={{ minHeight: 64 }}>
-          <div className="d-flex align-items-center gap-3">
-            <Image src="/hive_logo.jpg" alt="Hive Report" roundedCircle height={44} width={44} style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }} />
-            <span style={{ color: '#1f2937', fontWeight: 600, fontSize: '1.2rem', letterSpacing: '0.5px' }}>Пошук сертифікатів</span>
-          </div>
-          <div className="d-flex align-items-center gap-3">
-            <span style={{ color: '#374151', fontWeight: 500, fontSize: '1.05rem', marginRight: 8 }}>{username}</span>
-            {avatarUrl ? (
-              <Image src={avatarUrl} alt="avatar" roundedCircle height={40} width={40} style={{ objectFit: 'cover', background: '#eee', border: '1px solid #e5e7eb', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }} />
-            ) : (
-              <div style={{ width: 40, height: 40, borderRadius: '50%', background: '#e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <span style={{ color: '#6b7280', fontSize: 20 }}>?</span>
-              </div>
-            )}
-            <Button variant="outline-danger" size="sm" style={{ fontWeight: 500, marginLeft: 12 }} onClick={handleLogout}>
-              Вихід
-            </Button>
-          </div>
+    <Navbar
+      expand="lg"
+      bg="white"
+      variant="light"
+      className="shadow-sm border-bottom"
+      style={{ minHeight: 64 }}
+    >
+      <Container fluid style={{ padding: '0 3rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        {/* Left section: logo */}
+        <Navbar.Brand href="/" className="d-flex align-items-center gap-3" style={{ fontWeight: 600, fontSize: '1.25rem', color: '#1f2937' }}>
+          <Image
+            src="/hive_logo.jpg"
+            alt="Hive Report"
+            rounded
+            height={64}
+            width={64}
+            style={{ objectFit: 'contain' }}
+          />
+          <span>Hive Report</span>
+        </Navbar.Brand>
+
+        {/* Right section: username, avatar, logout button */}
+        <div className="d-flex align-items-center gap-3">
+          <Navbar.Text style={{ color: '#374151', fontWeight: 500, fontSize: '1.1rem' }}>
+            {username}
+          </Navbar.Text>
+
+          {!avatarUrl || avatarError ? (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 40,
+                height: 40,
+                backgroundColor: '#e5e7eb',
+                borderRadius: '50%',
+                color: '#6b7280',
+                fontSize: 24,
+                userSelect: 'none',
+                boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
+              }}
+            >
+              {/* fallback emoji або іконка */}
+              🙂
+            </div>
+          ) : (
+            <Image
+              src={avatarUrl}
+              roundedCircle
+              height={40}
+              width={40}
+              onError={() => setAvatarError(true)}
+              style={{ objectFit: 'cover', border: '1px solid #e5e7eb', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}
+            />
+          )}
+
+          <Button
+            variant="warning"
+            size="sm"
+            style={{ fontWeight: 600 }}
+            onClick={handleLogout}
+            aria-label="Logout"
+          >
+            Вихід
+          </Button>
         </div>
       </Container>
-    </header>
+    </Navbar>
   );
 };
 
