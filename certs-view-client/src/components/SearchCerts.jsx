@@ -312,32 +312,37 @@ export default function SearchCerts() {
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto p-6">
         {/* Пошук */}
-        <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
-          <div className="flex gap-3">
-            <div className="flex-1">
+        <div className="card mb-4 shadow-sm">
+          <div className="card-body">
+            <div className="input-group w-100" style={{maxWidth: 300}}>
               <input
                 type="text"
                 placeholder="Введіть ЄДРПОУ..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 onKeyDown={handleKeyPress}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                className="form-control"
+                aria-label="Введіть ЄДРПОУ"
               />
+              <button
+                onClick={handleSearch}
+                disabled={loading}
+                className="btn btn-primary"
+                type="button"
+                style={{ backgroundColor: '#31c48d', color: '#fff', border: 'none' }}
+              >
+                {loading ? (
+                  <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                ) : null}
+                {loading ? 'Завантаження...' : 'Шукати'}
+              </button>
             </div>
-            <button
-              onClick={handleSearch}
-              disabled={loading}
-              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium"
-            >
-              {loading ? 'Завантаження...' : 'Шукати'}
-            </button>
+            {error && (
+              <div className="alert alert-danger mt-3" role="alert">
+                {error}
+              </div>
+            )}
           </div>
-          
-          {error && (
-            <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-red-700 text-sm">{error}</p>
-            </div>
-          )}
         </div>
 
         {/* Результати пошуку */}
