@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Container, Image, Button, Navbar, Nav } from 'react-bootstrap';
+import { Image, Button, Navbar, ButtonGroup } from 'react-bootstrap';
 
 const Header = ({ username, avatarUrl, onLogout }) => {
   const [avatarError, setAvatarError] = useState(false);
@@ -28,7 +28,7 @@ const Header = ({ username, avatarUrl, onLogout }) => {
       expand="lg"
       fluid
       className="shadow-sm border-bottom bg-white"
-      style={{ width: 'auto', padding: '0rem 2rem', marginBottom: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+      style={{ minHeight: '64px', width: 'auto', padding: '0rem 5rem', marginBottom: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
     >
         {/* Left block */}
         <Navbar.Brand
@@ -47,10 +47,17 @@ const Header = ({ username, avatarUrl, onLogout }) => {
           style={{ objectFit: 'contain' }}
         />
         </Navbar.Brand>
-        <Navbar.Toggle />
+
         {/* Right block */}
-        <Navbar.Collapse className="d-flex align-items-center gap-3">
-          <Navbar.Text style={{ color: '#374151', fontWeight: 500, fontSize: '1.05rem', marginRight: 8 }}>
+        <Navbar.Collapse className="d-flex justify-content-center align-items-center gap-3">
+          <Navbar.Text
+            style={{
+              color: "#374151",
+              fontWeight: 500,
+              fontSize: "1.05rem",
+              margin: '0 1rem',
+            }}
+          >
             {username}
           </Navbar.Text>
           {!avatarUrl || avatarError ? (
@@ -67,7 +74,7 @@ const Header = ({ username, avatarUrl, onLogout }) => {
               style={{ objectFit: 'cover', background: '#eee', border: '1px solid #e5e7eb', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}
             />
           )}
-          <Button 
+          <Button
             variant="warning" 
             size="sm" 
             style={{ fontWeight: 500, marginLeft: 12 }} 
