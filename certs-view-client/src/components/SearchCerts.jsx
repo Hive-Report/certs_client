@@ -572,7 +572,7 @@ export default function SearchCerts() {
 
             {/* Таблиця */}
             {filteredAndSortedData.length === 0 ? (
-              <div className="bg-white rounded-lg shadow-sm border p-12 text-center">
+              <div className="bg-white rounded-lg p-12 text-center">
                 <div className="text-gray-400 mb-4" style={{ fontSize: '4rem' }}>🔍</div>
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
                   Немає сертифікатів за вашими фільтрами
@@ -582,7 +582,7 @@ export default function SearchCerts() {
                 </p>
                 <button
                   onClick={clearFilters}
-                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  className="px-6 py-2 bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
                 >
                   Очистити фільтри
                 </button>
