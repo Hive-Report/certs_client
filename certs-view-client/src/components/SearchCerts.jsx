@@ -627,6 +627,7 @@ export default function SearchCerts() {
                                 style={{ width: `${columnSettings[column.key].width}px`, minWidth: `${columnSettings[column.key].width}px`, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
                                 title={`${cert[column.key] || ''} - Клікніть для копіювання`}
                               >
+                                {/* TO-DO: Make more flexibility */}
                                 {column.key === 'status' ? (
                                 <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold border ${getStatusColor(cert.status)}`}
                                   style={{ minWidth: 90, justifyContent: 'center', letterSpacing: '0.5px' }}>
