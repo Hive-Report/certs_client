@@ -590,7 +590,7 @@ export default function SearchCerts() {
             ) : (
               <div className="bg-white rounded-lg shadow-sm border rounded-5 overflow-hidden">
                 <div className="overflow-x-auto">
-                  <table className="w-full table-fixed">
+                  <table className="table-fixed" style={{ width: '100%' }}>
                     <thead className="border-b" style={{ backgroundColor: '#f9fafb' }}>
                       <tr>
                         {columns.filter(col => columnSettings[col.key].visible).map(column => (
