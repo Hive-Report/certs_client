@@ -588,7 +588,7 @@ export default function SearchCerts() {
                 </button>
               </div>
             ) : (
-              <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
+              <div className="bg-white rounded-lg shadow-sm border rounded-5 overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead className="bg-gray-50 border-b">
