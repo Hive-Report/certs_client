@@ -407,7 +407,7 @@ export default function SearchCerts() {
 
               {/* Налаштування стовпців */}
               {showColumnSettings && (
-                <div className="border-t pt-4">
+                <div className="border-t pt-2">
                   <div className="flex justify-between items-center mb-4">
                     <h3 className="text-lg font-medium text-gray-900">Налаштування стовпців</h3>
                     <button
@@ -420,7 +420,7 @@ export default function SearchCerts() {
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                     {columns.map(column => (
-                      <div key={column.key} className="bg-gray-50 p-4 rounded-lg">
+                      <div key={column.key} className="bg-gray-50 py-3 rounded-lg">
                         <div className="flex items-center gap-3 mb-3">
                           <input
                             type="checkbox"
@@ -454,7 +454,7 @@ export default function SearchCerts() {
 
               {/* Фільтри */}
               {showFilters && (
-                <div className="border-t pt-4">
+                <div className="border-t pt-2">
                   <div className="flex justify-between items-center mb-4">
                     <h3 className="text-lg font-medium text-gray-900">Фільтри</h3>
                     <button
