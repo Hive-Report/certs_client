@@ -95,10 +95,20 @@ export default function SearchCerts() {
     }
   };
 
-  const copyToClipboard = useCallback((text, cellId) => {
+  const copyToClipboard = useCallback((text, cellId, columnKey = null) => {
     if (!text) return;
-    
-    navigator.clipboard.writeText(text).then(() => {
+    let copyText = text;
+    // If column is date, format as DD.MM.YYYY
+    if (columnKey === 'start_date' || columnKey === 'end_date') {
+      const d = new Date(text);
+      if (!isNaN(d.getTime())) {
+        const dd = String(d.getDate()).padStart(2, '0');
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const yyyy = d.getFullYear();
+        copyText = `${dd}.${mm}.${yyyy}`;
+      }
+    }
+    navigator.clipboard.writeText(copyText).then(() => {
       setCopiedCell(cellId);
       setTimeout(() => setCopiedCell(null), 2000);
     }).catch(err => {
@@ -623,7 +633,7 @@ export default function SearchCerts() {
                                     ? 'bg-green-100 text-green-900' 
                                     : 'text-gray-900 hover:bg-blue-50'
                                 }`}
-                                onClick={() => copyToClipboard(cert[column.key] || '', `${column.key}-${index}`)}
+                                onClick={() => copyToClipboard(cert[column.key] || '', `${column.key}-${index}`, column.key)}
                                 style={{ width: `${columnSettings[column.key].width}px`, minWidth: `${columnSettings[column.key].width}px`, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
                                 title={`${cert[column.key] || ''} - Клікніть для копіювання`}
                               >
