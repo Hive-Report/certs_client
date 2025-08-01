@@ -310,7 +310,7 @@ export default function SearchCerts() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto py-6 px-4">
+      <div className="max-w-7xl mx-auto py-3 px-2">
         <h1 className="text-2xl font-semibold m-4">Пошук сертифікатів</h1>
         {/* Пошук */}
         <div className="m-4">
@@ -348,14 +348,14 @@ export default function SearchCerts() {
 
         {/* Результати пошуку */}
         {loading && (
-          <div className="bg-white rounded-lg shadow-sm border p-12 text-center">
+          <div className="bg-white rounded-lg p-12 text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
             <p className="text-gray-600">Завантаження...</p>
           </div>
         )}
 
         {!loading && data.length === 0 && search.trim() && !error && (
-          <div className="bg-white rounded-lg shadow-sm border p-12 text-center">
+          <div className="bg-white rounded-lg p-12 text-center">
             <div className="text-gray-400 mb-4" style={{ fontSize: '4rem' }}>🔍</div>
             <h3 className="text-lg font-medium text-gray-900 mb-2">Результатів не знайдено</h3>
             <p className="text-gray-600">
@@ -365,9 +365,9 @@ export default function SearchCerts() {
         )}
 
         {data.length > 0 && (
-          <div className="space-y-6">
+          <div className="space-y-6 m-4">
             {/* Панель управління */}
-            <div className="bg-white rounded-lg shadow-sm border p-6">
+            <div className="bg-white rounded-lg p-6">
               <div className="flex flex-wrap gap-4 items-center justify-between mb-4">
                 <div className="flex items-center gap-4">
                   <h2 className="text-xl font-semibold text-gray-900">
@@ -383,9 +383,9 @@ export default function SearchCerts() {
                 <div className="flex gap-2">
                   <button
                     onClick={() => setShowFilters(!showFilters)}
-                    className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                      showFilters 
-                        ? 'bg-blue-600 text-white' 
+                    className={`px-2 py-1 rounded-md text-sm font-medium transition-colors ${
+                      showFilters
+                        ? 'bg-blue-600 text-white'
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                   >
@@ -394,7 +394,7 @@ export default function SearchCerts() {
                   
                   <button
                     onClick={() => setShowColumnSettings(!showColumnSettings)}
-                    className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                    className={`px-2 py-1 rounded-lg font-medium transition-colors ${
                       showColumnSettings 
                         ? 'bg-blue-600 text-white' 
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
