@@ -108,7 +108,7 @@ export default function SearchCerts() {
         copyText = `${dd}.${mm}.${yyyy}`;
       }
     }
-    navigator.clipboard.writeText(copyText).then(() => {
+    navigator.clipboard.writeText(String(copyText)).then(() => {
       setCopiedCell(cellId);
       setTimeout(() => setCopiedCell(null), 2000);
     }).catch(err => {
