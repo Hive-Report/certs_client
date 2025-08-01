@@ -28,7 +28,6 @@ const Login = ({ onLogin, onShowRegister }) => {
               <Image
                 src="/hive_logo.jpg"
                 alt="Hive Report"
-                thumbnail
                 rounded
                 height={100}
                 width={100}
@@ -37,7 +36,6 @@ const Login = ({ onLogin, onShowRegister }) => {
               <Image
                 src="/acsk_logo.png"
                 alt="ACSK Logo"
-                thumbnail
                 rounded
                 height={80}
                 width={80}
@@ -54,7 +52,7 @@ const Login = ({ onLogin, onShowRegister }) => {
             {window.google ? (
               <GoogleLoginButton onSuccess={handleGoogleSuccess} onError={handleGoogleError} />
             ) : (
-              <div className="text-danger" style={{ fontSize: '1rem', fontWeight: 500, marginTop: 24 }}>
+              <div className="text-base font-bold mt-6 text-center">
                 Не вдалося завантажити кнопку входу Google.<br />Будь ласка, перезавантажте сторінку!
               </div>
             )}
