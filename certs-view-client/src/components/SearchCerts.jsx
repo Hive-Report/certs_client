@@ -590,19 +590,14 @@ export default function SearchCerts() {
             ) : (
               <div className="bg-white rounded-lg shadow-sm border rounded-5 overflow-hidden">
                 <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead className="bg-gray-50 border-b">
+                  <table className="w-full table-fixed">
+                    <thead className="border-b" style={{ backgroundColor: '#f9fafb' }}>
                       <tr>
                         {columns.filter(col => columnSettings[col.key].visible).map(column => (
                           <th 
                             key={column.key}
-                            className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                            className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors w-auto"
                             onClick={() => handleSort(column.key)}
-                            style={{ 
-                              width: `${columnSettings[column.key].width}px`,
-                              minWidth: `${columnSettings[column.key].width}px`,
-                              maxWidth: `${columnSettings[column.key].width}px`
-                            }}
                           >
                             <div className="flex items-center gap-2">
                               {column.label}
@@ -618,44 +613,46 @@ export default function SearchCerts() {
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
                       {filteredAndSortedData.map((cert, index) => (
-                        <tr key={cert.serial || index} className="hover:bg-gray-50 transition-colors">
-                          {columns.filter(col => columnSettings[col.key].visible).map(column => (
-                            <td
-                              key={column.key}
-                              className={`px-4 py-3 text-sm cursor-pointer transition-colors ${
-                                copiedCell === `${column.key}-${index}` 
-                                  ? 'bg-green-100 text-green-900' 
-                                  : 'text-gray-900 hover:bg-blue-50'
-                              }`}
-                              onClick={() => copyToClipboard(cert[column.key] || '', `${column.key}-${index}`)}
-                              style={{ 
-                                width: `${columnSettings[column.key].width}px`,
-                                minWidth: `${columnSettings[column.key].width}px`,
-                                maxWidth: `${columnSettings[column.key].width}px`,
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                                whiteSpace: 'nowrap'
-                              }}
-                              title={`${cert[column.key] || ''} - Клікніть для копіювання`}
-                            >
-                              {column.key === 'status' ? (
-                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(cert.status)}`}>
-                                  {getStatusText(cert.status)}
-                                </span>
-                              ) : column.key === 'serial' ? (
-                                formatSerial(cert.serial)
-                              ) : column.key === 'start_date' || column.key === 'end_date' ? (
-                                formatDate(cert[column.key])
-                              ) : (
-                                cert[column.key] || '-'
-                              )}
-                              
-                              {copiedCell === `${column.key}-${index}` && (
-                                <span className="ml-2 text-green-600">✓</span>
-                              )}
-                            </td>
-                          ))}
-                        </tr>
+                        <React.Fragment key={cert.serial || index}>
+                          <tr className="hover:bg-gray-50 transition-colors">
+                            {columns.filter(col => columnSettings[col.key].visible).map(column => (
+                              <td
+                                key={column.key}
+                                className={`px-4 py-3 text-sm cursor-pointer transition-colors ${
+                                  copiedCell === `${column.key}-${index}` 
+                                    ? 'bg-green-100 text-green-900' 
+                                    : 'text-gray-900 hover:bg-blue-50'
+                                }`}
+                                onClick={() => copyToClipboard(cert[column.key] || '', `${column.key}-${index}`)}
+                                style={{ width: `${columnSettings[column.key].width}px`, minWidth: `${columnSettings[column.key].width}px`, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                                title={`${cert[column.key] || ''} - Клікніть для копіювання`}
+                              >
+                                {column.key === 'status' ? (
+                                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(cert.status)}`}>
+                                    {getStatusText(cert.status)}
+                                  </span>
+                                ) : column.key === 'serial' ? (
+                                  formatSerial(cert.serial)
+                                ) : column.key === 'start_date' || column.key === 'end_date' ? (
+                                  formatDate(cert[column.key])
+                                ) : (
+                                  cert[column.key] || '-'
+                                )}
+                                {copiedCell === `${column.key}-${index}` && (
+                                  <span className="ml-2 text-green-600">✓</span>
+                                )}
+                              </td>
+                            ))}
+                          </tr>
+                          {/* Horizontal line between rows */}
+                          {index < filteredAndSortedData.length - 1 && (
+                            <tr>
+                              <td colSpan={columns.filter(col => columnSettings[col.key].visible).length} style={{ padding: 0 }}>
+                                <div style={{ borderBottom: '2px solid #e5e7eb', margin: 0 }}></div>
+                              </td>
+                            </tr>
+                          )}
+                        </React.Fragment>
                       ))}
                     </tbody>
                   </table>
