@@ -277,9 +277,9 @@ export default function SearchCerts() {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'Діючий': return 'bg-green-100 text-green-800 border-green-200';
-      case 'Заблокований': return 'bg-red-100 text-red-800 border-red-200';
-      case 'Скасований': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'Діючий': return 'bg-green-200 text-green-900 border-green-300 shadow-sm';
+      case 'Заблокований': return 'bg-red-200 text-red-900 border-red-300 shadow-sm';
+      case 'Скасований': return 'bg-yellow-200 text-yellow-900 border-yellow-300 shadow-sm';
       default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
@@ -310,46 +310,52 @@ export default function SearchCerts() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto p-6">
+      <div className="max-w-7xl mx-auto py-3 px-2">
+        <h1 className="text-2xl font-semibold m-4">Пошук сертифікатів</h1>
         {/* Пошук */}
-        <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
-          <div className="flex gap-3">
-            <div className="flex-1">
+        <div className="m-4">
+          <div className="card-body">
+            <div className="input-group w-100" style={{maxWidth: 300}}>
               <input
                 type="text"
                 placeholder="Введіть ЄДРПОУ..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 onKeyDown={handleKeyPress}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                aria-label="Введіть ЄДРПОУ"
+                className="form-control w-full px-3 py-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
               />
+              <button
+                onClick={handleSearch}
+                disabled={loading}
+                className="btn btn-primary"
+                type="button"
+                style={{ backgroundColor: '#31c48d', color: '#fff', border: 'none' }}
+              >
+                {loading ? (
+                  <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                ) : null}
+                {loading ? 'Завантаження...' : 'Шукати'}
+              </button>
             </div>
-            <button
-              onClick={handleSearch}
-              disabled={loading}
-              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium"
-            >
-              {loading ? 'Завантаження...' : 'Шукати'}
-            </button>
+            {error && (
+              <div className="alert alert-danger mt-3" role="alert">
+                {error}
+              </div>
+            )}
           </div>
-          
-          {error && (
-            <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-red-700 text-sm">{error}</p>
-            </div>
-          )}
         </div>
 
         {/* Результати пошуку */}
         {loading && (
-          <div className="bg-white rounded-lg shadow-sm border p-12 text-center">
+          <div className="bg-white rounded-lg p-12 text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
             <p className="text-gray-600">Завантаження...</p>
           </div>
         )}
 
         {!loading && data.length === 0 && search.trim() && !error && (
-          <div className="bg-white rounded-lg shadow-sm border p-12 text-center">
+          <div className="bg-white rounded-lg p-12 text-center">
             <div className="text-gray-400 mb-4" style={{ fontSize: '4rem' }}>🔍</div>
             <h3 className="text-lg font-medium text-gray-900 mb-2">Результатів не знайдено</h3>
             <p className="text-gray-600">
@@ -359,9 +365,9 @@ export default function SearchCerts() {
         )}
 
         {data.length > 0 && (
-          <div className="space-y-6">
+          <div className="space-y-6 m-4">
             {/* Панель управління */}
-            <div className="bg-white rounded-lg shadow-sm border p-6">
+            <div className="bg-white rounded-lg p-6">
               <div className="flex flex-wrap gap-4 items-center justify-between mb-4">
                 <div className="flex items-center gap-4">
                   <h2 className="text-xl font-semibold text-gray-900">
@@ -377,9 +383,9 @@ export default function SearchCerts() {
                 <div className="flex gap-2">
                   <button
                     onClick={() => setShowFilters(!showFilters)}
-                    className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                      showFilters 
-                        ? 'bg-blue-600 text-white' 
+                    className={`px-2 py-1 rounded-md text-sm font-medium transition-colors ${
+                      showFilters
+                        ? 'bg-blue-600 text-white'
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                   >
@@ -388,7 +394,7 @@ export default function SearchCerts() {
                   
                   <button
                     onClick={() => setShowColumnSettings(!showColumnSettings)}
-                    className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                    className={`px-2 py-1 rounded-lg font-medium transition-colors ${
                       showColumnSettings 
                         ? 'bg-blue-600 text-white' 
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -401,7 +407,7 @@ export default function SearchCerts() {
 
               {/* Налаштування стовпців */}
               {showColumnSettings && (
-                <div className="border-t pt-4">
+                <div className="border-t pt-2">
                   <div className="flex justify-between items-center mb-4">
                     <h3 className="text-lg font-medium text-gray-900">Налаштування стовпців</h3>
                     <button
@@ -414,7 +420,7 @@ export default function SearchCerts() {
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                     {columns.map(column => (
-                      <div key={column.key} className="bg-gray-50 p-4 rounded-lg">
+                      <div key={column.key} className="bg-gray-50 py-3 rounded-lg">
                         <div className="flex items-center gap-3 mb-3">
                           <input
                             type="checkbox"
@@ -448,7 +454,7 @@ export default function SearchCerts() {
 
               {/* Фільтри */}
               {showFilters && (
-                <div className="border-t pt-4">
+                <div className="border-t pt-2">
                   <div className="flex justify-between items-center mb-4">
                     <h3 className="text-lg font-medium text-gray-900">Фільтри</h3>
                     <button
@@ -582,21 +588,16 @@ export default function SearchCerts() {
                 </button>
               </div>
             ) : (
-              <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
+              <div className="bg-white rounded-lg shadow-sm border rounded-5 overflow-hidden">
                 <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead className="bg-gray-50 border-b">
+                  <table className="table-fixed" style={{ width: '100%' }}>
+                    <thead className="border-b" style={{ backgroundColor: '#f9fafb' }}>
                       <tr>
                         {columns.filter(col => columnSettings[col.key].visible).map(column => (
                           <th 
                             key={column.key}
-                            className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                            className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors w-auto"
                             onClick={() => handleSort(column.key)}
-                            style={{ 
-                              width: `${columnSettings[column.key].width}px`,
-                              minWidth: `${columnSettings[column.key].width}px`,
-                              maxWidth: `${columnSettings[column.key].width}px`
-                            }}
                           >
                             <div className="flex items-center gap-2">
                               {column.label}
@@ -612,44 +613,57 @@ export default function SearchCerts() {
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
                       {filteredAndSortedData.map((cert, index) => (
-                        <tr key={cert.serial || index} className="hover:bg-gray-50 transition-colors">
-                          {columns.filter(col => columnSettings[col.key].visible).map(column => (
-                            <td
-                              key={column.key}
-                              className={`px-4 py-3 text-sm cursor-pointer transition-colors ${
-                                copiedCell === `${column.key}-${index}` 
-                                  ? 'bg-green-100 text-green-900' 
-                                  : 'text-gray-900 hover:bg-blue-50'
-                              }`}
-                              onClick={() => copyToClipboard(cert[column.key] || '', `${column.key}-${index}`)}
-                              style={{ 
-                                width: `${columnSettings[column.key].width}px`,
-                                minWidth: `${columnSettings[column.key].width}px`,
-                                maxWidth: `${columnSettings[column.key].width}px`,
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                                whiteSpace: 'nowrap'
-                              }}
-                              title={`${cert[column.key] || ''} - Клікніть для копіювання`}
-                            >
-                              {column.key === 'status' ? (
-                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(cert.status)}`}>
+                        <React.Fragment key={cert.serial || index}>
+                          <tr className="hover:bg-gray-50 transition-colors">
+                            {columns.filter(col => columnSettings[col.key].visible).map(column => (
+                              <td
+                                key={column.key}
+                                className={`px-4 py-3 text-sm cursor-pointer transition-colors ${
+                                  copiedCell === `${column.key}-${index}` 
+                                    ? 'bg-green-100 text-green-900' 
+                                    : 'text-gray-900 hover:bg-blue-50'
+                                }`}
+                                onClick={() => copyToClipboard(cert[column.key] || '', `${column.key}-${index}`)}
+                                style={{ width: `${columnSettings[column.key].width}px`, minWidth: `${columnSettings[column.key].width}px`, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                                title={`${cert[column.key] || ''} - Клікніть для копіювання`}
+                              >
+                                {/* TO-DO: Make more flexibility */}
+                                {column.key === 'status' ? (
+                                <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold border ${getStatusColor(cert.status)}`}
+                                  style={{ minWidth: 90, justifyContent: 'center', letterSpacing: '0.5px' }}>
+                                  {cert.status === 'Діючий' && (
+                                    <svg width="14" height="14" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="10" cy="10" r="10" fill="#34D399"/><path d="M6 10.5L9 13.5L14 8.5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                                  )}
+                                  {cert.status === 'Заблокований' && (
+                                    <svg width="14" height="14" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="10" cy="10" r="10" fill="#F87171"/><path d="M7 7L13 13M13 7L7 13" stroke="white" strokeWidth="2" strokeLinecap="round"/></svg>
+                                  )}
+                                  {cert.status === 'Скасований' && (
+                                    <svg width="14" height="14" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="10" cy="10" r="10" fill="#FBBF24"/><path d="M10 6V10L12 12" stroke="white" strokeWidth="2" strokeLinecap="round"/></svg>
+                                  )}
                                   {getStatusText(cert.status)}
                                 </span>
-                              ) : column.key === 'serial' ? (
-                                formatSerial(cert.serial)
-                              ) : column.key === 'start_date' || column.key === 'end_date' ? (
-                                formatDate(cert[column.key])
-                              ) : (
-                                cert[column.key] || '-'
-                              )}
-                              
-                              {copiedCell === `${column.key}-${index}` && (
-                                <span className="ml-2 text-green-600">✓</span>
-                              )}
-                            </td>
-                          ))}
-                        </tr>
+                                ) : column.key === 'serial' ? (
+                                  formatSerial(cert.serial)
+                                ) : column.key === 'start_date' || column.key === 'end_date' ? (
+                                  formatDate(cert[column.key])
+                                ) : (
+                                  cert[column.key] || '-'
+                                )}
+                                {copiedCell === `${column.key}-${index}` && (
+                                  <span className="ml-2 text-green-600">✓</span>
+                                )}
+                              </td>
+                            ))}
+                          </tr>
+                          {/* Horizontal line between rows */}
+                          {index < filteredAndSortedData.length - 1 && (
+                            <tr>
+                              <td colSpan={columns.filter(col => columnSettings[col.key].visible).length} style={{ padding: 0 }}>
+                                <div style={{ borderBottom: '2px solid #e5e7eb', margin: 0 }}></div>
+                              </td>
+                            </tr>
+                          )}
+                        </React.Fragment>
                       ))}
                     </tbody>
                   </table>
