@@ -310,9 +310,10 @@ export default function SearchCerts() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto p-6">
+      <div className="max-w-7xl mx-auto py-6 px-4">
+        <h1 className="text-2xl font-semibold m-4">Пошук сертифікатів</h1>
         {/* Пошук */}
-        <div className="card mb-4 shadow-sm">
+        <div className="m-4">
           <div className="card-body">
             <div className="input-group w-100" style={{maxWidth: 300}}>
               <input
