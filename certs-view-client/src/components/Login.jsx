@@ -52,7 +52,7 @@ const Login = ({ onLogin, onShowRegister }) => {
             {window.google ? (
               <GoogleLoginButton onSuccess={handleGoogleSuccess} onError={handleGoogleError} />
             ) : (
-              <div className="text-danger" style={{ fontSize: '1rem', fontWeight: 500, marginTop: 24 }}>
+              <div className="text-base font-bold mt-6 text-center">
                 Не вдалося завантажити кнопку входу Google.<br />Будь ласка, перезавантажте сторінку!
               </div>
             )}
