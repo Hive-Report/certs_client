@@ -277,9 +277,9 @@ export default function SearchCerts() {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'Діючий': return 'bg-green-100 text-green-800 border-green-200';
-      case 'Заблокований': return 'bg-red-100 text-red-800 border-red-200';
-      case 'Скасований': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'Діючий': return 'bg-green-200 text-green-900 border-green-300 shadow-sm';
+      case 'Заблокований': return 'bg-red-200 text-red-900 border-red-300 shadow-sm';
+      case 'Скасований': return 'bg-yellow-200 text-yellow-900 border-yellow-300 shadow-sm';
       default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
@@ -628,9 +628,19 @@ export default function SearchCerts() {
                                 title={`${cert[column.key] || ''} - Клікніть для копіювання`}
                               >
                                 {column.key === 'status' ? (
-                                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(cert.status)}`}>
-                                    {getStatusText(cert.status)}
-                                  </span>
+                                <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold border ${getStatusColor(cert.status)}`}
+                                  style={{ minWidth: 90, justifyContent: 'center', letterSpacing: '0.5px' }}>
+                                  {cert.status === 'Діючий' && (
+                                    <svg width="14" height="14" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="10" cy="10" r="10" fill="#34D399"/><path d="M6 10.5L9 13.5L14 8.5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                                  )}
+                                  {cert.status === 'Заблокований' && (
+                                    <svg width="14" height="14" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="10" cy="10" r="10" fill="#F87171"/><path d="M7 7L13 13M13 7L7 13" stroke="white" strokeWidth="2" strokeLinecap="round"/></svg>
+                                  )}
+                                  {cert.status === 'Скасований' && (
+                                    <svg width="14" height="14" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="10" cy="10" r="10" fill="#FBBF24"/><path d="M10 6V10L12 12" stroke="white" strokeWidth="2" strokeLinecap="round"/></svg>
+                                  )}
+                                  {getStatusText(cert.status)}
+                                </span>
                                 ) : column.key === 'serial' ? (
                                   formatSerial(cert.serial)
                                 ) : column.key === 'start_date' || column.key === 'end_date' ? (
