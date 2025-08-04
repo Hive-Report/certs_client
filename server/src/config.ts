@@ -12,7 +12,6 @@ const getTestConfig = (): Config => {
     NODE_ENV: 'test',
     CERTS_API_KEY: 'test-token',
     JWT_SECRET: 'test-secret',
-    ALLOWED_EMAIL_DOMAINS: 'test.com,example.com',
     GOOGLE_CLIENT_ID: 'test-google-client-id.apps.googleusercontent.com',
   };
 };
@@ -35,7 +34,6 @@ const getProductionConfig = (): Config => {
     NODE_ENV: required('NODE_ENV', process.env.NODE_ENV),
     CERTS_API_KEY: required('CERTS_API_KEY', process.env.CERTS_API_KEY),
     JWT_SECRET: required('JWT_SECRET', process.env.JWT_SECRET),
-    ALLOWED_EMAIL_DOMAINS: required('ALLOWED_EMAIL_DOMAINS', process.env.ALLOWED_EMAIL_DOMAINS),
     GOOGLE_CLIENT_ID: required('GOOGLE_CLIENT_ID', process.env.GOOGLE_CLIENT_ID),
   };
 };

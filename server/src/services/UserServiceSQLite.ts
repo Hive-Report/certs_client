@@ -99,20 +99,8 @@ export class UserService {
         'string.max': 'Ім\'я користувача не повинно перевищувати 50 символів',
         'any.required': 'Ім\'я користувача є обов\'язковим'
       }),
-      email: Joi.string().email().required().custom((value, helpers) => {
-        const allowedDomains = config.ALLOWED_EMAIL_DOMAINS?.split(',') ?? [];
-        const emailDomain = value.split('@')[1];
-        
-        if (!allowedDomains.includes(emailDomain)) {
-          return helpers.error('string.domain', { 
-            allowedDomains: allowedDomains.join(', ') 
-          });
-        }
-        
-        return value;
-      }).messages({
+      email: Joi.string().email().required().messages({
         'string.email': 'Невірний формат електронної пошти',
-        'string.domain': 'Реєстрація не дозволена.',
         'any.required': 'Електронна пошта є обов\'язковою'
       }),
       password: Joi.string().min(8).pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/).required().messages({

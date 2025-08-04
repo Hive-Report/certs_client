@@ -10,10 +10,6 @@ function extractGoogleUser(idToken: string) {
     .then(ticket => {
       const payload = ticket.getPayload();
       if (!payload) throw new Error('Invalid token');
-      const allowedDomains = (config.ALLOWED_EMAIL_DOMAINS || '').split(',').map(d => d.trim()).filter(Boolean);
-      if (!payload.hd || !allowedDomains.includes(payload.hd)) {
-        throw new Error('Access is allowed only for domains: ' + allowedDomains.join(', '));
-      }
       return {
         email: payload.email,
         username: payload.name ?? payload.email,

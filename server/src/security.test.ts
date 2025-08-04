@@ -31,17 +31,6 @@ describe('Security Validation Tests', () => {
     delete process.env.DB_PATH;
   });
 
-  test('Email domain validation - should reject unauthorized domain', async () => {
-    const result = await userService.register({
-      username: `testuser_${Date.now()}`,
-      email: `test_${Date.now()}@unauthorized.com`,
-      password: 'TestPass123'
-    });
-
-    expect(result.success).toBe(false);
-    expect(result.error).toBe('Помилка валідації даних');
-  });
-
   test('Password validation - should reject weak passwords', async () => {
     const result = await userService.register({
       username: 'testuser3',
