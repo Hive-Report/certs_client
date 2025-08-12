@@ -95,18 +95,23 @@ export default function SearchCerts() {
     }
   };
 
-  const copyToClipboard = useCallback((text, cellId, columnKey = null) => {
-    if (!text) return;
-    let copyText = text;
-    // If column is date, format as DD.MM.YYYY
-    if (columnKey === 'start_date' || columnKey === 'end_date') {
-      const d = new Date(text);
-      if (!isNaN(d.getTime())) {
+  const formatDateDDMMYYYY = (dateStr) => {
+    if (!dateStr) return '';
+    const d = new Date(dateStr);
+    if (!isNaN(d.getTime())) {
         const dd = String(d.getDate()).padStart(2, '0');
         const mm = String(d.getMonth() + 1).padStart(2, '0');
         const yyyy = d.getFullYear();
-        copyText = `${dd}.${mm}.${yyyy}`;
-      }
+        return `${dd}.${mm}.${yyyy}`;
+    }
+    return dateStr;
+  };
+
+  const copyToClipboard = useCallback((text, cellId, columnKey = null) => {
+    if (!text) return;
+    let copyText = text;
+    if (columnKey === 'start_date' || columnKey === 'end_date') {
+      copyText = formatDateDDMMYYYY(copyText);
     }
     navigator.clipboard.writeText(String(copyText)).then(() => {
       setCopiedCell(cellId);
@@ -635,7 +640,10 @@ export default function SearchCerts() {
                                 }`}
                                 onClick={() => copyToClipboard(cert[column.key] || '', `${column.key}-${index}`, column.key)}
                                 style={{ width: `${columnSettings[column.key].width}px`, minWidth: `${columnSettings[column.key].width}px`, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
-                                title={`${cert[column.key] || ''} - Клікніть для копіювання`}
+                                title={
+                                  (column.key === 'start_date' || column.key === 'end_date')
+                                  ? `${formatDateDDMMYYYY(cert[column.key])} - Клікніть для копіювання`
+                                  : `${cert[column.key] || ''} - Клікніть для копіювання`}
                               >
                                 {/* TO-DO: Make more flexibility */}
                                 {column.key === 'status' ? (
