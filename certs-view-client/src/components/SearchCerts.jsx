@@ -194,7 +194,8 @@ export default function SearchCerts() {
           ...prev, 
           end_date_from: today,
           end_date_to: '',
-          status: 'Діючий'
+          status: 'Діючий',
+          crypt: 'Підписання'
         }));
         break;
       case 'Заблокований':
@@ -202,17 +203,27 @@ export default function SearchCerts() {
           ...prev, 
           end_date_to: today,
           end_date_from: '',
-          status: 'Заблокований'
+          status: 'Заблокований',
+          crypt: 'Підписання'
         }));
         break;
-      case 'Скасований':
+      case 'Скасований': {
         const nextMonth = new Date();
         nextMonth.setMonth(nextMonth.getMonth() + 1);
         setFilters(prev => ({ 
           ...prev, 
           end_date_from: today,
           end_date_to: nextMonth.toISOString().split('T')[0],
-          status: 'Скасований'
+          status: 'Скасований',
+          crypt: 'Підписання'
+        }));
+        break;
+      }
+      case 'Підписання':
+        setFilters(prev => ({
+          ...prev,
+          crypt: 'Підписання',
+          status: ''
         }));
         break;
       default:
@@ -524,6 +535,16 @@ export default function SearchCerts() {
                               <option value="Діючий">Діючий</option>
                               <option value="expired">Прострочений</option>
                               <option value="pending">Очікування</option>
+                            </select>
+                          ) : column.key === 'crypt' ? (
+                            <select
+                              value={filters[column.key]}
+                              onChange={(e) => handleFilterChange(column.key, e.target.value)}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            >
+                              <option value="">Всі</option>
+                              <option value="Підписання">Підписання</option>
+                              <option value="Шифрування">Шифрування</option>
                             </select>
                           ) : (
                             <input
