@@ -36,7 +36,7 @@ describe('CertsController Basic Tests', () => {
 
       expect(mockRes.status).toHaveBeenCalledWith(500);
       expect(mockRes.json).toHaveBeenCalledWith({
-        error: 'Failed to fetch certs'
+        error: 'EDRPOU is too short'
       });
     });
 
