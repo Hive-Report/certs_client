@@ -19,7 +19,7 @@ export class CertsController {
     }
     if (edrpou.length < 8) {
       this.logger.error('EDRPOU is too short');
-      res.status(500).json({ error: 'Failed to fetch certs' });
+      res.status(500).json({ error: 'EDRPOU is too short' });
       return;
     }
     this.logger.info(`Getting certs for EDRPOU: ${edrpou}`);
