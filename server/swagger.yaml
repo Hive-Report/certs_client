@@ -1,0 +1,136 @@
+openapi: 3.0.3
+info:
+  title: Certs API
+  version: 1.0.0
+  description: API для роботи з сертифікатами та Google OAuth2 авторизацією
+servers:
+  - url: /api
+paths:
+  /auth/google:
+    post:
+      summary: Google OAuth2 авторизація
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                idToken:
+                  type: string
+                  description: Google ID Token
+      responses:
+        '200':
+          description: Успішна авторизація
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  user:
+                    type: object
+                    properties:
+                      email:
+                        type: string
+                      username:
+                        type: string
+                      picture:
+                        type: string
+                        nullable: true
+                      googleId:
+                        type: string
+                  error:
+                    type: string
+                    nullable: true
+        '400':
+          description: Відсутній idToken
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  error:
+                    type: string
+        '401':
+          description: Помилка авторизації
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  error:
+                    type: string
+  /certs/{edrpou}:
+    get:
+      summary: Отримати сертифікати за ЄДРПОУ
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: edrpou
+          in: path
+          required: true
+          schema:
+            type: string
+            minLength: 8
+          description: ЄДРПОУ організації
+      responses:
+        '200':
+          description: Список сертифікатів
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Cert'
+        '400':
+          description: Відсутній або некоректний ЄДРПОУ
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        '500':
+          description: Внутрішня помилка сервера
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Cert:
+      type: object
+      properties:
+        serial:
+          type: string
+        name:
+          type: string
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        type:
+          type: string
+        storage_type:
+          type: string
+        crypt:
+          type: string
+        status:
+          type: string
