@@ -1,4 +1,5 @@
 import config from '../config/config.js';
+import authService from './authService.js';
 
 /**
  * API Service для централізованого управління запитами
@@ -10,11 +11,33 @@ class ApiService {
   }
 
   /**
-   * Базовий метод для HTTP запитів
+   * Базовий метод для HTTP запитів.
+   *
+   * Token refresh strategy:
+   *  1. Before the request: if the stored backend JWT is within 5 minutes of
+   *     expiry, attempt a silent refresh proactively so the request never hits
+   *     a 401 in the first place.
+   *  2. After a 401 response: attempt a silent refresh once, then retry the
+   *     original request with the new token.
+   *  3. If silent refresh is unavailable (Google session gone), clear auth
+   *     state and fire the 'auth:session-expired' event so App.js can redirect
+   *     the user to the login page.
+   *
+   * The `_isRetry` parameter is internal — callers should never pass it.
    */
-  async request(endpoint, options = {}) {
+  async request(endpoint, options = {}, _isRetry = false) {
     const url = `${this.baseUrl}${endpoint}`;
-    
+
+    // ── Proactive refresh (only on first attempt) ──────────────────────────
+    if (!_isRetry && authService.getToken() && authService.isTokenExpiringSoon()) {
+      try {
+        await authService.silentRefresh();
+      } catch {
+        // Proactive refresh failed – proceed with the existing token.
+        // If it is truly expired the 401 handler below will deal with it.
+      }
+    }
+
     const defaultOptions = {
       headers: {
         'Content-Type': 'application/json',
@@ -23,7 +46,7 @@ class ApiService {
     };
 
     // Додаємо токен авторизації якщо він є
-    const token = localStorage.getItem(config.STORAGE_KEYS.AUTH_TOKEN);
+    const token = authService.getToken();
     if (token) {
       defaultOptions.headers.Authorization = `Bearer ${token}`;
     }
@@ -37,18 +60,27 @@ class ApiService {
       console.log('Making request to:', url, 'with options:', requestOptions);
       const response = await fetch(url, requestOptions);
       console.log('Response:', response.status, response.statusText);
-      
+
+      // ── Reactive refresh on 401 ──────────────────────────────────────────
+      if (response.status === 401 && !_isRetry) {
+        try {
+          await authService.silentRefresh();
+          // Retry with the fresh token (isRetry = true prevents infinite loop).
+          return this.request(endpoint, options, true);
+        } catch {
+          // Silent refresh unavailable – force logout.
+          authService.clearAuth();
+          window.dispatchEvent(new CustomEvent('auth:session-expired'));
+          throw new Error('Сесія закінчилась. Будь ласка, авторизуйтесь знову.');
+        }
+      }
+
       if (!response.ok) {
         const errorData = await response.json();
         console.error('API Error:', errorData);
         throw new Error(errorData.error || 'API request failed');
       }
-      
-      // Якщо токен недійсний, очищаємо localStorage
-      if (response.status === 401) {
-        this.clearAuth();
-      }
-      
+
       return response;
     } catch (error) {
       console.error('API Request Error:', error);
@@ -96,10 +128,7 @@ class ApiService {
    * Очищення даних авторизації
    */
   clearAuth() {
-    localStorage.removeItem(config.STORAGE_KEYS.AUTH_TOKEN);
-    localStorage.removeItem(config.STORAGE_KEYS.USER);
-    localStorage.removeItem(config.STORAGE_KEYS.USERNAME);
-    localStorage.removeItem(config.STORAGE_KEYS.IS_AUTHENTICATED);
+    authService.clearAuth();
   }
 
   // === AUTH ENDPOINTS ===

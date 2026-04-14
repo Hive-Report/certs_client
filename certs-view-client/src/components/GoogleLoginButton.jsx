@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import config from '../config/config.js';
-import apiService from '../services/apiService.js';
+import authService from '../services/authService.js';
 
 const GOOGLE_CLIENT_ID = config.GOOGLE_CLIENT_ID;
 
@@ -12,7 +12,8 @@ const GoogleLoginButton = ({ onSuccess, onError }) => {
       window.google.accounts.id.initialize({
         client_id: GOOGLE_CLIENT_ID,
         callback: handleCredentialResponse,
-        auto_select: false,
+        // auto_select: true enables silent One Tap sign-in when possible.
+        auto_select: true,
       });
       window.google.accounts.id.renderButton(
         buttonRef.current,
@@ -30,17 +31,12 @@ const GoogleLoginButton = ({ onSuccess, onError }) => {
 
   const handleCredentialResponse = async (response) => {
     try {
-      // Зберігаємо Google ID Token у localStorage
-      localStorage.setItem(config.STORAGE_KEYS.AUTH_TOKEN, response.credential);
-      // Надсилаємо Google ID Token на бекенд
-      const res = await apiService.postGoogleToken(response.credential);
-      if (res.success) {
-        onSuccess(res.user);
-      } else {
-        onError(res.error || 'Google login failed');
-      }
+      // Exchange the short-lived Google ID token for a 7-day backend JWT.
+      // authService stores the JWT (and its expiry) in localStorage.
+      const data = await authService.exchangeGoogleToken(response.credential);
+      onSuccess(data.user);
     } catch (err) {
-      onError('Network error');
+      onError(err.message || 'Google login failed');
     }
   };
 
