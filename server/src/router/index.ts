@@ -3,14 +3,16 @@ import { Router } from 'express';
 import { createLogger } from '../logger/index.js';
 import { CertsController } from '../controllers/CertsController.js';
 import { googleAuth } from '../controllers/GoogleAuthController.js';
-import { googleTokenMiddleware } from '../middleware/googleTokenMiddleware.js';
+import { combinedAuthMiddleware } from '../middleware/combinedAuthMiddleware.js';
 
 const certsController = new CertsController(createLogger('CertsController'));
 const router = Router();
 
 router.post('/auth/google', googleAuth);
 
-// Захищені маршрути (з авторизацією)
-router.get('/certs/:edrpou', googleTokenMiddleware, (req: Request, res: Response) => certsController.getCerts(req, res));
+// Захищені маршрути.
+// combinedAuthMiddleware приймає як backend JWT (7 днів), так і Google ID Token —
+// це забезпечує зворотну сумісність для сторонніх клієнтів.
+router.get('/certs/:edrpou', combinedAuthMiddleware, (req: Request, res: Response) => certsController.getCerts(req, res));
 
 export default router;

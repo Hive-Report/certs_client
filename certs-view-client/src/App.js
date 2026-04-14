@@ -24,6 +24,18 @@ function App() {
     }
   }, []);
 
+  // Якщо тихе оновлення токена не вдалося (Google-сесія завершена),
+  // apiService надсилає цю подію — скидаємо стан і показуємо сторінку входу.
+  useEffect(() => {
+    const onSessionExpired = () => {
+      setIsAuthenticated(false);
+      setUsername('');
+      setAvatarUrl('');
+    };
+    window.addEventListener('auth:session-expired', onSessionExpired);
+    return () => window.removeEventListener('auth:session-expired', onSessionExpired);
+  }, []);
+
   const handleLogin = (user, avatar) => {
     setIsAuthenticated(true);
     setUsername(user);
