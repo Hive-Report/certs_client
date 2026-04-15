@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const BRAND = '#32C48D';
 
@@ -7,16 +7,14 @@ const BRAND = '#32C48D';
  */
 export default function UspacyTab({ edrpou }) {
   const [activeTab, setActiveTab] = useState('data');
+  const [iframeKey, setIframeKey] = useState(0);
 
-  // Build Uspacy URL with EDRPOU search filter if available
-  const getUspacyURL = () => {
-    if (!edrpou) return 'https://ihive.uspacy.ua/';
+  const USPACY_URL = 'https://ihive.uspacy.ua/';
 
-    // Filter by EDRPOU (uf_crm_1632905074 field)
-    return `https://ihive.uspacy.ua/crm/v1/entities/companies/?page=1&list=20&sort_by%5Bcreated_at%5D=desc&table_fields%5B%5D=id&table_fields%5B%5D=title&table_fields%5B%5D=owner&table_fields%5B%5D=phone&table_fields%5B%5D=email&table_fields%5B%5D=company_label&table_fields%5B%5D=contacts&table_fields%5B%5D=uf_crm_1707834642093&table_fields%5B%5D=uf_crm_1632905074&table_fields%5B%5D=created_at&table_fields%5B%5D=updated_at&table_fields%5B%5D=crm_avatar&filters%5Bfilters%5D%5B0%5D%5Bfield%5D=uf_crm_1632905074&filters%5Bfilters%5D%5B0%5D%5Boperator%5D=like&filters%5Bfilters%5D%5B0%5D%5Bvalues%5D=${encodeURIComponent(edrpou)}`;
-  };
-
-  const USPACY_URL = getUspacyURL();
+  // Reload iframe when EDRPOU changes (user will need to search manually in Uspacy)
+  useEffect(() => {
+    setIframeKey(prev => prev + 1);
+  }, [edrpou]);
 
   return (
     <div style={{ marginTop: 24 }}>
@@ -80,6 +78,7 @@ export default function UspacyTab({ edrpou }) {
         {activeTab === 'uspacy' && (
           <div style={{ width: '100%', minHeight: '600px' }}>
             <iframe
+              key={iframeKey}
               src={USPACY_URL}
               title="Uspacy CRM"
               style={{
@@ -87,8 +86,13 @@ export default function UspacyTab({ edrpou }) {
                 display: 'block',
               }}
               allow="autoplay; microphone; camera; geolocation; clipboard-write"
-              sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-top-navigation"
+              sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-top-navigation allow-storage"
             />
+            {edrpou && (
+              <div style={{ padding: '12px 14px', fontSize: 12, color: '#6b7280', backgroundColor: '#f9fafb', borderTop: '1px solid #e5e7eb' }}>
+                💡 Шукаєте компанію <strong>{edrpou}</strong>? Використайте пошук в Uspacy або прокрутіть список
+              </div>
+            )}
           </div>
         )}
       </div>
