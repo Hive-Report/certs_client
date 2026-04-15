@@ -317,7 +317,7 @@ function CertsSection({ certs }) {
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
           <thead>
             <tr style={{ backgroundColor: '#f9fafb' }}>
-              <th style={TH}>Власник</th>
+              <th style={{ ...TH, width: 300 }}>Власник</th>
               <th style={TH}>Email</th>
               <th style={{ ...TH, width: 150 }}>Телефон</th>
               <th style={{ ...TH, width: 200 }}>Адм. реєстрації</th>
@@ -335,8 +335,7 @@ function CertsSection({ certs }) {
               const rowBg  = expSoon ? '#fff8e1' : (i % 2 ? '#fafafa' : '#fff');
               return (
                 <tr key={i} style={{ borderBottom: '1px solid #f3f4f6', backgroundColor: rowBg }}>
-                  <td style={{ ...TD, maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
-                      title={cert.name}>
+                  <td style={{ ...TD, minWidth: 300 }}>
                     {cert.name || '—'}
                   </td>
                   <td style={TD}>{cert.email || '—'}</td>
