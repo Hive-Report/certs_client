@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import apiService from '../services/apiService.js';
+import UspacyTab from './UspacyTab.jsx';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const BRAND   = '#32C48D';
@@ -510,6 +511,7 @@ export default function SearchAggregate() {
           <>
             {licenses && licenses.length > 0 && <LicensesSection licenses={licenses} />}
             {certs    && certs.length    > 0 && <CertsSection    certs={certs} />}
+            <UspacyTab edrpou={searched} />
           </>
         )}
       </div>
