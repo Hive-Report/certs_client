@@ -65,7 +65,10 @@ function extractFormsSet(licenses) {
   if (lower.includes('(єдина)') || lower.includes('(єдиний)')) return 'Єдиний комплект';
   if (lower.includes('(стандарт'))                             return 'Стандартний комплект';
   const m = name.match(/\(([^)]+)\)/);
-  return m ? m[1] : null;
+  if (m) return m[1];
+
+  // Plain "Звітніcть" / "Звітність" without qualifier = Повний комплект
+  return 'Повний комплект';
 }
 
 // ── Aggregate modules for a group (deduped by name, keep latest end_date) ────
@@ -93,7 +96,7 @@ function getModuleStats(licenses) {
   const active      = modules.filter(m => isActive(m.end_date)).length;
   const expiringSoon = modules.filter(m => isExpiringSoon(m.end_date)).length;
   const lapsed      = modules.filter(m =>
-    !isActive(m.end_date) && m.end_date && new Date(m.end_date) >= ONE_YEAR_AGO
+    !isActive(m.end_date) && m.end_date
   ).length;
   return { active, expiringSoon, lapsed };
 }
@@ -174,7 +177,7 @@ function LicensesSection({ licenses }) {
     const active       = all.filter(m => isActive(m.end_date)).length;
     const expiringSoon = all.filter(m => isExpiringSoon(m.end_date)).length;
     const lapsed       = all.filter(m =>
-      !isActive(m.end_date) && m.end_date && new Date(m.end_date) >= ONE_YEAR_AGO
+      !isActive(m.end_date) && m.end_date
     ).length;
     return { active, expiringSoon, lapsed };
   }, [licenses]);

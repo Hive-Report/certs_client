@@ -60,7 +60,10 @@ function extractFormsSet(licenses) {
 
   // Fall back to whatever is in parentheses
   const m = name.match(/\(([^)]+)\)/);
-  return m ? m[1] : null;
+  if (m) return m[1];
+
+  // Plain "Звітніcть" / "Звітність" without qualifier = Повний комплект
+  return 'Повний комплект';
 }
 
 // ── Aggregate modules for a type group ───────────────────────────────────────
@@ -83,7 +86,7 @@ function aggregateModules(licenses) {
   for (const [name, end_date] of moduleMap) {
     if (isActive(end_date)) {
       active.push({ name_module: name, end_date });
-    } else if (end_date && new Date(end_date) >= ONE_YEAR_AGO) {
+    } else if (end_date) {
       lapsed.push({ name_module: name, end_date });
     }
   }

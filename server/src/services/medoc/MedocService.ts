@@ -5,6 +5,7 @@ import axios from 'axios';
 
 const LIC_TYPE_NAMES: Record<string, string> = {
   '1':  'Локальна версія',
+  '12': 'Локальна версія',
   '13': 'Мережева версія',
   '7':  'SAF-T UA',
 };
