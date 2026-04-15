@@ -377,6 +377,7 @@ export default function SearchAggregate() {
   const [error,       setError]       = useState('');
   const [searched,    setSearched]    = useState('');
   const [crmOpen,     setCrmOpen]     = useState(false);
+  const [crmSearching, setCrmSearching] = useState(false);
 
   useEffect(() => {
     const q = searchParams.get('q');
@@ -420,6 +421,15 @@ export default function SearchAggregate() {
   const handleSearch = () => {
     if (!search.trim()) { setError('Будь ласка, введіть ЄДРПОУ'); return; }
     doSearch(search.trim());
+  };
+
+  const handleCrmSearch = () => {
+    if (!searched) return;
+    setCrmSearching(true);
+    // Open CRM panel
+    setCrmOpen(true);
+    // Trigger iframe reload by toggling state
+    setTimeout(() => setCrmSearching(false), 500);
   };
 
   const hasData   = licenses !== null || certs !== null;
@@ -519,21 +529,29 @@ export default function SearchAggregate() {
               overflow: 'hidden', boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
             }}>
               {/* Header - Clickable */}
-              <button
-                onClick={() => setCrmOpen(!crmOpen)}
+              <div
                 style={{
                   width: '100%', padding: '14px 18px', backgroundColor: '#fff',
-                  border: 'none', cursor: 'pointer', display: 'flex',
+                  display: 'flex',
                   alignItems: 'center', gap: 12, justifyContent: 'space-between',
                   borderBottom: crmOpen ? '1px solid #e5e7eb' : 'none',
                   transition: 'all 0.2s',
                 }}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#fff'}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1 }}>
+                {/* Left side - Title and search info */}
+                <button
+                  onClick={() => setCrmOpen(!crmOpen)}
+                  style={{
+                    flex: 1, padding: 0, backgroundColor: 'transparent',
+                    border: 'none', cursor: 'pointer', display: 'flex',
+                    alignItems: 'center', gap: 10, textAlign: 'left',
+                    transition: 'all 0.2s',
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.parentElement.style.backgroundColor = '#f9fafb'}
+                  onMouseLeave={(e) => e.currentTarget.parentElement.style.backgroundColor = '#fff'}
+                >
                   <span style={{ fontSize: '1.1rem' }}>🌐</span>
-                  <div style={{ textAlign: 'left' }}>
+                  <div>
                     <div style={{ fontWeight: 700, fontSize: '1rem', color: '#111827' }}>
                       Uspacy
                     </div>
@@ -541,15 +559,40 @@ export default function SearchAggregate() {
                       {searched && `Пошук: ${searched}`}
                     </div>
                   </div>
+                </button>
+
+                {/* Right side - Search button and toggle */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  {searched && (
+                    <button
+                      onClick={handleCrmSearch}
+                      disabled={crmSearching}
+                      style={{
+                        padding: '6px 14px', fontSize: 12, fontWeight: 600,
+                        backgroundColor: BRAND, color: '#fff', border: 'none',
+                        borderRadius: 6, cursor: crmSearching ? 'not-allowed' : 'pointer',
+                        whiteSpace: 'nowrap', opacity: crmSearching ? 0.7 : 1,
+                        transition: 'opacity 0.2s',
+                      }}
+                    >
+                      {crmSearching ? '⏳' : '🔍 Пошук'}
+                    </button>
+                  )}
+                  <button
+                    onClick={() => setCrmOpen(!crmOpen)}
+                    style={{
+                      padding: '6px 12px', backgroundColor: 'transparent', border: 'none',
+                      cursor: 'pointer', fontSize: '1.2rem', color: '#6b7280',
+                      transform: crmOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                      transition: 'transform 0.2s',
+                      display: 'flex', alignItems: 'center',
+                    }}
+                    title={crmOpen ? 'Згорнути' : 'Розгорнути'}
+                  >
+                    ▼
+                  </button>
                 </div>
-                <div style={{
-                  fontSize: '1.2rem', color: '#6b7280',
-                  transform: crmOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-                  transition: 'transform 0.2s',
-                }}>
-                  ▼
-                </div>
-              </button>
+              </div>
 
               {/* Content - Expandable */}
               {crmOpen && (
