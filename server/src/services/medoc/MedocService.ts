@@ -10,6 +10,11 @@ const LIC_TYPE_NAMES: Record<string, string> = {
   '7':  'SAF-T UA',
 };
 
+const QUANTITY_FORMS_SET: Record<string, string> = {
+  '0': 'Повний комплект',
+  '2': 'Єдиний податок',
+};
+
 export class MedocService {
   private readonly logger: Logger;
 
@@ -96,22 +101,14 @@ export class MedocService {
       const licType = String(lic.LIC_Type ?? '');
       const rawModules = Array.isArray(lic.Lic_TypeR) ? lic.Lic_TypeR : [];
 
-      // Separate "комплект бланків" entry from regular modules
-      let forms_set: string | null = null;
-      const modules: MedocModule[] = [];
+      // Derive forms_set from Quantity field: '0' = Повний комплект, '2' = Єдиний податок
+      const quantity = String(lic.Quantity ?? '');
+      const forms_set: string | null = QUANTITY_FORMS_SET[quantity] ?? null;
 
-      for (const mod of rawModules) {
-        const name = mod.name_module ?? '';
-        if (name.toLowerCase().includes('комплект')) {
-          // Use the module name itself as the forms_set label (e.g. "Повний комплект")
-          forms_set = name;
-        } else {
-          modules.push({
-            name_module: name,
-            end_date: this.parseMedocDate(mod.end_date),
-          });
-        }
-      }
+      const modules: MedocModule[] = rawModules.map(mod => ({
+        name_module: mod.name_module ?? '',
+        end_date: this.parseMedocDate(mod.end_date),
+      }));
 
       result.push({
         lic_id:        String(lic.LIC_Id ?? ''),

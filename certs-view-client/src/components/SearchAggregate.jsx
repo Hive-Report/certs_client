@@ -12,9 +12,6 @@ TODAY.setHours(0, 0, 0, 0);
 const IN_TWO_MONTHS = new Date(TODAY);
 IN_TWO_MONTHS.setDate(IN_TWO_MONTHS.getDate() + 60);
 
-const ONE_YEAR_AGO = new Date(TODAY);
-ONE_YEAR_AGO.setFullYear(ONE_YEAR_AGO.getFullYear() - 1);
-
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function isActive(iso) {
   if (!iso) return false;
@@ -45,30 +42,16 @@ function certIso(str) {
   return null;
 }
 
-// ── Forms-set from Звітність ──────────────────────────────────────────────────
+// ── Forms-set: pick from the most recently purchased license in the group ─────
+// Backend derives forms_set from Quantity: "0" → Повний комплект, "2" → Єдиний податок
 function extractFormsSet(licenses) {
-  let bestMod = null;
-  let bestCreDate = '';
-  for (const lic of licenses) {
-    for (const mod of lic.modules) {
-      if (!(mod.name_module || '').toLowerCase().includes('звітн')) continue;
-      if ((lic.lic_cre_date || '') >= bestCreDate) {
-        bestCreDate = lic.lic_cre_date || '';
-        bestMod = mod;
-      }
-    }
+  const sorted = [...licenses].sort((a, b) =>
+    (b.lic_cre_date || '').localeCompare(a.lic_cre_date || ''),
+  );
+  for (const lic of sorted) {
+    if (lic.forms_set) return lic.forms_set;
   }
-  if (!bestMod) return null;
-  const name  = bestMod.name_module || '';
-  const lower = name.toLowerCase();
-  if (lower.includes('(повна)') || lower.includes('(повний)')) return 'Повний комплект';
-  if (lower.includes('(єдина)') || lower.includes('(єдиний)')) return 'Єдиний комплект';
-  if (lower.includes('(стандарт'))                             return 'Стандартний комплект';
-  const m = name.match(/\(([^)]+)\)/);
-  if (m) return m[1];
-
-  // Plain "Звітніcть" / "Звітність" without qualifier = Повний комплект
-  return 'Повний комплект';
+  return null;
 }
 
 // ── Aggregate modules for a group (deduped by name, keep latest end_date) ────

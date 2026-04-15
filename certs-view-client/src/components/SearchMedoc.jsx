@@ -12,9 +12,6 @@ TODAY.setHours(0, 0, 0, 0);
 const IN_TWO_MONTHS = new Date(TODAY);
 IN_TWO_MONTHS.setDate(IN_TWO_MONTHS.getDate() + 60);
 
-const ONE_YEAR_AGO = new Date(TODAY);
-ONE_YEAR_AGO.setFullYear(ONE_YEAR_AGO.getFullYear() - 1);
-
 // ── Date helpers ──────────────────────────────────────────────────────────────
 function isActive(iso) {
   if (!iso) return false;
@@ -31,39 +28,17 @@ function formatDate(iso) {
   return `${d}.${m}.${y}`;
 }
 
-// ── Forms-set from Звітність module ──────────────────────────────────────────
-// Finds the most recently active/latest "Звітність" module across all licenses
-// of the same type group and extracts the complect name from parentheses.
+// ── Forms-set: pick from the most recently purchased license in the group ─────
+// The backend derives forms_set from the Quantity field:
+//   Quantity "0" → "Повний комплект", Quantity "2" → "Єдиний податок"
 function extractFormsSet(licenses) {
-  let bestMod = null;
-  let bestLicCreDate = '';
-
-  for (const lic of licenses) {
-    for (const mod of lic.modules) {
-      const lowerName = (mod.name_module || '').toLowerCase();
-      if (!lowerName.includes('звітн')) continue;
-      // Prefer the one with the latest lic_cre_date (most recent purchase)
-      if ((lic.lic_cre_date || '') >= bestLicCreDate) {
-        bestLicCreDate = lic.lic_cre_date || '';
-        bestMod = mod;
-      }
-    }
+  const sorted = [...licenses].sort((a, b) =>
+    (b.lic_cre_date || '').localeCompare(a.lic_cre_date || ''),
+  );
+  for (const lic of sorted) {
+    if (lic.forms_set) return lic.forms_set;
   }
-
-  if (!bestMod) return null;
-
-  const name = bestMod.name_module || '';
-  const lower = name.toLowerCase();
-  if (lower.includes('(повна)') || lower.includes('(повний)'))   return 'Повний комплект';
-  if (lower.includes('(єдина)') || lower.includes('(єдиний)'))   return 'Єдиний комплект';
-  if (lower.includes('(стандарт'))                               return 'Стандартний комплект';
-
-  // Fall back to whatever is in parentheses
-  const m = name.match(/\(([^)]+)\)/);
-  if (m) return m[1];
-
-  // Plain "Звітніcть" / "Звітність" without qualifier = Повний комплект
-  return 'Повний комплект';
+  return null;
 }
 
 // ── Aggregate modules for a type group ───────────────────────────────────────
