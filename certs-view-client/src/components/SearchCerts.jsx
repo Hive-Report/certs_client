@@ -1,23 +1,29 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import apiService from '../services/apiService.js';
 
 export default function SearchCerts() {
-  const [search, setSearch] = useState('');
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const [search, setSearch] = useState(searchParams.get('q') || '');
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [copiedCell, setCopiedCell] = useState(null);
-  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
+  const [sortConfig, setSortConfig] = useState({
+    key: searchParams.get('sort') || null,
+    direction: searchParams.get('dir') || 'asc',
+  });
   const [filters, setFilters] = useState({
-    name: '',
-    type: '',
-    status: '',
-    storage_type: '',
-    crypt: '',
-    start_date_from: '',
-    start_date_to: '',
-    end_date_from: '',
-    end_date_to: ''
+    name:            searchParams.get('name')            || '',
+    type:            searchParams.get('type')            || '',
+    status:          searchParams.get('status')          || '',
+    storage_type:    searchParams.get('storage_type')    || '',
+    crypt:           searchParams.get('crypt')           || '',
+    start_date_from: searchParams.get('start_date_from') || '',
+    start_date_to:   searchParams.get('start_date_to')   || '',
+    end_date_from:   searchParams.get('end_date_from')   || '',
+    end_date_to:     searchParams.get('end_date_to')     || '',
   });
   const [columnSettings, setColumnSettings] = useState({
     serial: { visible: true, width: 350 },
@@ -64,6 +70,40 @@ export default function SearchCerts() {
     setIsFiltersActive(hasActiveFilters);
   }, [filters]);
 
+  // Auto-search on mount if q param present
+  useEffect(() => {
+    const q = searchParams.get('q');
+    if (q) {
+      setSearch(q);
+      (async () => {
+        setLoading(true);
+        setError('');
+        try {
+          const result = await apiService.searchCerts(q);
+          setData(Array.isArray(result) ? result : []);
+        } catch (err) {
+          setError(err.message || 'Помилка при завантаженні даних');
+          setData([]);
+        } finally {
+          setLoading(false);
+        }
+      })();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Sync filters/sort to URL
+  useEffect(() => {
+    if (!search.trim() && data.length === 0) return;
+    const params = {};
+    if (search.trim())         params.q              = search.trim();
+    if (sortConfig.key)        params.sort           = sortConfig.key;
+    if (sortConfig.direction !== 'asc') params.dir   = sortConfig.direction;
+    Object.entries(filters).forEach(([k, v]) => { if (v) params[k] = v; });
+    setSearchParams(params, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters, sortConfig]);
+
   const handleSearch = async () => {
     if (!search.trim()) {
       setError('Будь ласка, введіть ЄДРПОУ');
@@ -72,9 +112,12 @@ export default function SearchCerts() {
 
     setLoading(true);
     setError('');
-    
+
+    // Push q to URL immediately
+    setSearchParams({ q: search.trim() }, { replace: true });
+
     try {
-      const result = await apiService.searchCerts(search);
+      const result = await apiService.searchCerts(search.trim());
       setData(Array.isArray(result) ? result : []);
     } catch (error) {
       console.error('Помилка:', error);
@@ -356,7 +399,7 @@ export default function SearchCerts() {
                 disabled={loading}
                 className="btn btn-primary"
                 type="button"
-                style={{ backgroundColor: '#31c48d', color: '#fff', border: 'none' }}
+                style={{ backgroundColor: '#32C48D', color: '#fff', border: 'none' }}
               >
                 {loading ? (
                   <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>

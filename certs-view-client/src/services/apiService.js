@@ -190,14 +190,32 @@ class ApiService {
    */
   async searchCerts(edrpou) {
     const response = await this.get(`${this.endpoints.CERTS.SEARCH}/${edrpou}`);
-    
+
     if (!response.ok) {
       if (response.status === 401) {
         throw new Error('Сесія закінчилась. Будь ласка, авторизуйтесь знову.');
       }
       throw new Error(`Помилка сервера: ${response.status}`);
     }
-    
+
+    return response.json();
+  }
+
+  // === MEDOC ENDPOINTS ===
+
+  /**
+   * Пошук ліцензій MedDoc
+   */
+  async searchMedoc(edrpou) {
+    const response = await this.get(`${this.endpoints.MEDOC.SEARCH}/${edrpou}`);
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        throw new Error('Сесія закінчилась. Будь ласка, авторизуйтесь знову.');
+      }
+      throw new Error(`Помилка сервера: ${response.status}`);
+    }
+
     return response.json();
   }
 }
