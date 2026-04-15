@@ -19,6 +19,22 @@ export interface Cert {
   storage_type: string;
   crypt: string;
   status: string;
+  ipn?: string | null;
+  admin_reg?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  address?: string | null;
+  city?: string | null;
+}
+
+export interface SuzsRegistration {
+  name: string;
+  ipn: string | null;
+  admin_reg: string | null;
+  email: string | null;
+  phone: string | null;
+  address: string | null;
+  city: string | null;
 }
 
 export interface CertsApiResponse {

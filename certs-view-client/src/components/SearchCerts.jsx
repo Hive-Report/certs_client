@@ -16,6 +16,7 @@ export default function SearchCerts() {
   });
   const [filters, setFilters] = useState({
     name:            searchParams.get('name')            || '',
+    email:           searchParams.get('email')           || '',
     type:            searchParams.get('type')            || '',
     status:          searchParams.get('status')          || '',
     storage_type:    searchParams.get('storage_type')    || '',
@@ -26,14 +27,19 @@ export default function SearchCerts() {
     end_date_to:     searchParams.get('end_date_to')     || '',
   });
   const [columnSettings, setColumnSettings] = useState({
-    serial: { visible: true, width: 350 },
-    name: { visible: true, width: 250 },
-    start_date: { visible: true, width: 150 },
-    end_date: { visible: true, width: 150 },
-    type: { visible: true, width: 120 },
-    storage_type: { visible: true, width: 150 },
-    crypt: { visible: true, width: 120 },
-    status: { visible: true, width: 100 }
+    serial:       { visible: true,  width: 350 },
+    name:         { visible: true,  width: 250 },
+    ipn:          { visible: true,  width: 120 },
+    admin_reg:    { visible: true,  width: 220 },
+    email:        { visible: true,  width: 200 },
+    phone:        { visible: true,  width: 140 },
+    address:      { visible: false, width: 280 },
+    start_date:   { visible: true,  width: 150 },
+    end_date:     { visible: true,  width: 150 },
+    type:         { visible: true,  width: 120 },
+    storage_type: { visible: true,  width: 150 },
+    crypt:        { visible: true,  width: 120 },
+    status:       { visible: true,  width: 100 },
   });
   const [showColumnSettings, setShowColumnSettings] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
@@ -96,9 +102,9 @@ export default function SearchCerts() {
   useEffect(() => {
     if (!search.trim() && data.length === 0) return;
     const params = {};
-    if (search.trim())         params.q              = search.trim();
-    if (sortConfig.key)        params.sort           = sortConfig.key;
-    if (sortConfig.direction !== 'asc') params.dir   = sortConfig.direction;
+    if (search.trim())               params.q    = search.trim();
+    if (sortConfig.key)              params.sort = sortConfig.key;
+    if (sortConfig.direction !== 'asc') params.dir = sortConfig.direction;
     Object.entries(filters).forEach(([k, v]) => { if (v) params[k] = v; });
     setSearchParams(params, { replace: true });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -183,15 +189,16 @@ export default function SearchCerts() {
 
   const clearFilters = () => {
     setFilters({
-      name: '',
-      type: '',
-      status: '',
-      storage_type: '',
-      crypt: '',
+      name:            '',
+      email:           '',
+      type:            '',
+      status:          '',
+      storage_type:    '',
+      crypt:           '',
       start_date_from: '',
-      start_date_to: '',
-      end_date_from: '',
-      end_date_to: ''
+      start_date_to:   '',
+      end_date_from:   '',
+      end_date_to:     '',
     });
   };
 
@@ -217,14 +224,19 @@ export default function SearchCerts() {
 
   const resetColumnSettings = () => {
     setColumnSettings({
-      serial: { visible: true, width: 350 },
-      name: { visible: true, width: 250 },
-      start_date: { visible: true, width: 150 },
-      end_date: { visible: true, width: 150 },
-      type: { visible: true, width: 120 },
-      storage_type: { visible: true, width: 150 },
-      crypt: { visible: true, width: 120 },
-      status: { visible: true, width: 100 }
+      serial:       { visible: true,  width: 350 },
+      name:         { visible: true,  width: 250 },
+      ipn:          { visible: true,  width: 120 },
+      admin_reg:    { visible: true,  width: 220 },
+      email:        { visible: true,  width: 200 },
+      phone:        { visible: true,  width: 140 },
+      address:      { visible: false, width: 280 },
+      start_date:   { visible: true,  width: 150 },
+      end_date:     { visible: true,  width: 150 },
+      type:         { visible: true,  width: 120 },
+      storage_type: { visible: true,  width: 150 },
+      crypt:        { visible: true,  width: 120 },
+      status:       { visible: true,  width: 100 },
     });
   };
 
@@ -275,14 +287,19 @@ export default function SearchCerts() {
   };
 
   const columns = [
-    { key: 'serial', label: 'Серійний номер', filterable: false },
-    { key: 'name', label: 'Назва', filterable: true },
-    { key: 'start_date', label: 'Дата початку', filterable: true, type: 'date' },
-    { key: 'end_date', label: 'Дата закінчення', filterable: true, type: 'date' },
-    { key: 'type', label: 'Тип', filterable: true },
-    { key: 'storage_type', label: 'Тип зберігання', filterable: true },
-    { key: 'crypt', label: 'Криптографія', filterable: true },
-    { key: 'status', label: 'Статус', filterable: true }
+    { key: 'serial',       label: 'Серійний номер',   filterable: false },
+    { key: 'name',         label: 'Власник',           filterable: true  },
+    { key: 'ipn',          label: 'ІПН',               filterable: true  },
+    { key: 'admin_reg',    label: 'Адм. реєстрації',   filterable: true  },
+    { key: 'email',        label: 'Email',             filterable: true  },
+    { key: 'phone',        label: 'Телефон',           filterable: false },
+    { key: 'address',      label: 'Адреса',            filterable: false },
+    { key: 'start_date',   label: 'Початок дії',       filterable: true, type: 'date' },
+    { key: 'end_date',     label: 'Кінець дії',        filterable: true, type: 'date' },
+    { key: 'type',         label: 'Тип',               filterable: true  },
+    { key: 'storage_type', label: 'Тип зберігання',    filterable: true  },
+    { key: 'crypt',        label: 'Криптографія',      filterable: true  },
+    { key: 'status',       label: 'Статус',            filterable: true  },
   ];
 
   const filteredAndSortedData = React.useMemo(() => {
@@ -291,6 +308,7 @@ export default function SearchCerts() {
     let filtered = data.filter(cert => {
       const textFilters = (
         (cert.name || '').toLowerCase().includes(filters.name.toLowerCase()) &&
+        (cert.email || '').toLowerCase().includes(filters.email.toLowerCase()) &&
         (cert.type || '').toLowerCase().includes(filters.type.toLowerCase()) &&
         (cert.status || '').toLowerCase().includes(filters.status.toLowerCase()) &&
         (cert.storage_type || '').toLowerCase().includes(filters.storage_type.toLowerCase()) &&
@@ -698,14 +716,21 @@ export default function SearchCerts() {
                               <td
                                 key={column.key}
                                 className={`px-4 py-3 text-sm cursor-pointer transition-colors ${
-                                  copiedCell === `${column.key}-${index}` 
-                                    ? 'bg-green-100 text-green-900' 
+                                  copiedCell === `${column.key}-${index}`
+                                    ? 'bg-green-100 text-green-900'
                                     : 'text-gray-900 hover:bg-blue-50'
                                 }`}
-                                onClick={() => copyToClipboard(cert[column.key] || '', `${column.key}-${index}`, column.key)}
+                                onClick={() => {
+                                  const cellValue = column.key === 'address'
+                                    ? [cert.address, cert.city].filter(Boolean).join(', ')
+                                    : cert[column.key] || '';
+                                  copyToClipboard(cellValue, `${column.key}-${index}`, column.key);
+                                }}
                                 style={{ width: `${columnSettings[column.key].width}px`, minWidth: `${columnSettings[column.key].width}px`, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
                                 title={
-                                  (column.key === 'start_date' || column.key === 'end_date')
+                                  column.key === 'address'
+                                  ? `${[cert.address, cert.city].filter(Boolean).join(', ') || ''} - Клікніть для копіювання`
+                                  : (column.key === 'start_date' || column.key === 'end_date')
                                   ? `${formatDateDDMMYYYY(cert[column.key])} - Клікніть для копіювання`
                                   : `${cert[column.key] || ''} - Клікніть для копіювання`}
                               >
@@ -728,6 +753,8 @@ export default function SearchCerts() {
                                   formatSerial(cert.serial)
                                 ) : column.key === 'start_date' || column.key === 'end_date' ? (
                                   formatDate(cert[column.key])
+                                ) : column.key === 'address' ? (
+                                  [cert.address, cert.city].filter(Boolean).join(', ') || '-'
                                 ) : (
                                   cert[column.key] || '-'
                                 )}

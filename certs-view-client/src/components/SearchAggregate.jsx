@@ -255,7 +255,7 @@ function CertsSection({ certs }) {
   );
 
   const soon    = visible.filter(c => isExpiringSoon(certIso(c.end_date))).length;
-  const hidden  = certs.length - visible.length;
+  const hidden  = certs.length / 2 - visible.length;
 
   if (visible.length === 0) return (
     <Card>
@@ -291,6 +291,7 @@ function CertsSection({ certs }) {
           <thead>
             <tr style={{ backgroundColor: '#f9fafb' }}>
               <th style={TH}>Власник</th>
+              <th style={TH}>Email</th>
               <th style={{ ...TH, width: 120 }}>Тип</th>
               <th style={{ ...TH, width: 150 }}>Сховище</th>
               <th style={{ ...TH, width: 120 }}>Початок дії</th>
@@ -309,6 +310,7 @@ function CertsSection({ certs }) {
                       title={cert.name}>
                     {cert.name || '—'}
                   </td>
+                  <td style={TD}>{cert.email || '—'}</td>
                   <td style={TD}>{cert.type || '—'}</td>
                   <td style={TD}>{cert.storage_type || '—'}</td>
                   <td style={TD}>{formatIso(certIso(cert.start_date))}</td>
