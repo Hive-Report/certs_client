@@ -8,15 +8,9 @@ const BRAND = '#32C48D';
 export default function UspacyTab({ edrpou }) {
   const [activeTab, setActiveTab] = useState('data');
 
-  // Build Uspacy URL with search parameter
-  const getUspacyURL = () => {
-    const baseURL = 'https://ihive.uspacy.ua/';
-    if (!edrpou) return baseURL;
-    // Try to add search parameter
-    return `${baseURL}?search=${encodeURIComponent(edrpou)}`;
-  };
-
-  const USPACY_URL = getUspacyURL();
+  // Use Uspacy companies page directly
+  // When user authenticates in iframe, they can search companies
+  const USPACY_URL = 'https://ihive.uspacy.ua/crm/companies';
 
   return (
     <div style={{ marginTop: 24 }}>
@@ -91,7 +85,7 @@ export default function UspacyTab({ edrpou }) {
             />
             {edrpou && (
               <div style={{ padding: '12px 14px', fontSize: 12, color: '#6b7280', backgroundColor: '#f9fafb', borderTop: '1px solid #e5e7eb' }}>
-                🔍 Пошук за ЄДРПОУ: <strong>{edrpou}</strong>
+                🔍 Авторизуйтесь в Uspacy та шукайте компанію за кодом: <strong>{edrpou}</strong>
               </div>
             )}
           </div>
