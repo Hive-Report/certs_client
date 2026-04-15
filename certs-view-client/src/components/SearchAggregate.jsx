@@ -425,7 +425,7 @@ export default function SearchAggregate() {
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: PAGE_BG }}>
-      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '24px 16px' }}>
+      <div style={{ maxWidth: 1400, margin: '0 auto', padding: '24px 16px' }}>
 
         <h1 style={{ fontSize: '1.4rem', fontWeight: 700, color: '#111827', marginBottom: 6 }}>
           🗂️ Зведений вигляд
