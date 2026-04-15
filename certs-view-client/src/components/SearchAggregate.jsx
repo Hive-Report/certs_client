@@ -165,11 +165,38 @@ function LicensesSection({ licenses }) {
     return { active, expiringSoon, lapsed };
   }, [licenses]);
 
+  const handleCopyLicensesInfo = () => {
+    const info = byType.map(({ name, list }) => {
+      const forms_set = extractFormsSet(list);
+      const modules = dedupeModules(list).filter(m => m.end_date);
+      const modulesText = modules.map(m => `- ${m.name_module}: ${formatIso(m.end_date)}`).join('\n');
+      return `${name}${forms_set ? ` (${forms_set})` : ''}\n${modulesText || '(немає модулів)'}`;
+    }).join('\n\n');
+    navigator.clipboard.writeText(info).then(() => {
+      alert('Інформацію про ліцензії скопійовано');
+    }).catch(() => {
+      alert('Помилка копіювання');
+    });
+  };
+
   return (
     <Card>
-      <div style={{ padding: '14px 18px', borderBottom: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', gap: 10 }}>
-        <span style={{ fontSize: '1.1rem' }}>🐝</span>
-        <span style={{ fontWeight: 700, fontSize: '1rem', color: '#111827' }}>Ліцензії M.E.Doc</span>
+      <div style={{ padding: '14px 18px', borderBottom: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', gap: 10, justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span style={{ fontSize: '1.1rem' }}>🐝</span>
+          <span style={{ fontWeight: 700, fontSize: '1rem', color: '#111827' }}>Ліцензії M.E.Doc</span>
+        </div>
+        <button
+          onClick={handleCopyLicensesInfo}
+          style={{
+            backgroundColor: 'transparent', border: '1px solid #d1d5db', color: '#374151',
+            borderRadius: 6, padding: '4px 12px', fontSize: 12, fontWeight: 500,
+            cursor: 'pointer', whiteSpace: 'nowrap',
+          }}
+          title="Копіювати інформацію про ліцензії"
+        >
+          📋 Копіювати
+        </button>
       </div>
       <StatsRow items={[
         { label: 'діючих модулів',          value: sectionStats.active,       color: '#1a7a56' },
@@ -292,6 +319,8 @@ function CertsSection({ certs }) {
             <tr style={{ backgroundColor: '#f9fafb' }}>
               <th style={TH}>Власник</th>
               <th style={TH}>Email</th>
+              <th style={{ ...TH, width: 150 }}>Телефон</th>
+              <th style={{ ...TH, width: 200 }}>Адм. реєстрації</th>
               <th style={{ ...TH, width: 120 }}>Тип</th>
               <th style={{ ...TH, width: 150 }}>Сховище</th>
               <th style={{ ...TH, width: 120 }}>Початок дії</th>
@@ -311,6 +340,8 @@ function CertsSection({ certs }) {
                     {cert.name || '—'}
                   </td>
                   <td style={TD}>{cert.email || '—'}</td>
+                  <td style={TD}>{cert.phone || '—'}</td>
+                  <td style={TD}>{cert.admin_reg || '—'}</td>
                   <td style={TD}>{cert.type || '—'}</td>
                   <td style={TD}>{cert.storage_type || '—'}</td>
                   <td style={TD}>{formatIso(certIso(cert.start_date))}</td>
@@ -433,15 +464,28 @@ export default function SearchAggregate() {
           {error && <div className="alert alert-danger mt-2 mb-0">{error}</div>}
         </div>
 
-        {/* ЄДРПОУ badge */}
+        {/* ЄДРПОУ badge with org name from latest "печатка" cert */}
         {searched && !loading && (
-          <div style={{
-            display: 'inline-flex', alignItems: 'center', gap: 8,
-            backgroundColor: '#fff', border: `1px solid ${BRAND}`, borderRadius: 8,
-            padding: '6px 14px', marginBottom: 20,
-          }}>
-            <span style={{ fontSize: 12, color: '#6b7280' }}>ЄДРПОУ:</span>
-            <span style={{ fontSize: 15, fontWeight: 700, color: '#111827' }}>{searched}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
+            <div style={{
+              display: 'inline-flex', alignItems: 'center', gap: 8,
+              backgroundColor: '#fff', border: `1px solid ${BRAND}`, borderRadius: 8,
+              padding: '6px 14px',
+            }}>
+              <span style={{ fontSize: 12, color: '#6b7280' }}>ЄДРПОУ:</span>
+              <span style={{ fontSize: 15, fontWeight: 700, color: '#111827' }}>{searched}</span>
+            </div>
+            {certs && certs.length > 0 && (() => {
+              const sealCert = [...certs].sort((a, b) => (certIso(b.start_date) || '').localeCompare(certIso(a.start_date) || '')).find(c => c.type === 'Печатка');
+              return sealCert ? (
+                <div style={{
+                  fontSize: 14, fontWeight: 500, color: '#374151',
+                  backgroundColor: '#f3f4f6', padding: '6px 12px', borderRadius: 6,
+                }}>
+                  {sealCert.name}
+                </div>
+              ) : null;
+            })()}
           </div>
         )}
 
