@@ -8,23 +8,7 @@ export default function UspacyTab({ edrpou }) {
   const USPACY_URL = 'https://ihive.uspacy.ua/crm/companies';
 
   return (
-    <div style={{ marginTop: 24, borderRadius: 12, overflow: 'hidden', border: '1px solid #e5e7eb', backgroundColor: '#fff' }}>
-      {/* Header */}
-      <div style={{
-        padding: '14px 18px', borderBottom: '1px solid #e5e7eb', backgroundColor: '#f9fafb',
-        display: 'flex', alignItems: 'center', gap: 10,
-      }}>
-        <span style={{ fontSize: '1.1rem' }}>🌐</span>
-        <div>
-          <div style={{ fontWeight: 700, fontSize: '1rem', color: '#111827' }}>Uspacy</div>
-          {edrpou && (
-            <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>
-              Пошук: <strong>{edrpou}</strong>
-            </div>
-          )}
-        </div>
-      </div>
-
+    <div style={{ width: '100%' }}>
       {/* Iframe */}
       <div style={{ width: '100%', minHeight: '700px' }}>
         <iframe
