@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 
 const BRAND = '#32C48D';
 
@@ -7,14 +7,16 @@ const BRAND = '#32C48D';
  */
 export default function UspacyTab({ edrpou }) {
   const [activeTab, setActiveTab] = useState('data');
-  const [iframeKey, setIframeKey] = useState(0);
 
-  const USPACY_URL = 'https://ihive.uspacy.ua/';
+  // Build Uspacy URL with search parameter
+  const getUspacyURL = () => {
+    const baseURL = 'https://ihive.uspacy.ua/';
+    if (!edrpou) return baseURL;
+    // Try to add search parameter
+    return `${baseURL}?search=${encodeURIComponent(edrpou)}`;
+  };
 
-  // Reload iframe when EDRPOU changes (user will need to search manually in Uspacy)
-  useEffect(() => {
-    setIframeKey(prev => prev + 1);
-  }, [edrpou]);
+  const USPACY_URL = getUspacyURL();
 
   return (
     <div style={{ marginTop: 24 }}>
@@ -78,7 +80,6 @@ export default function UspacyTab({ edrpou }) {
         {activeTab === 'uspacy' && (
           <div style={{ width: '100%', minHeight: '600px' }}>
             <iframe
-              key={iframeKey}
               src={USPACY_URL}
               title="Uspacy CRM"
               style={{
@@ -90,7 +91,7 @@ export default function UspacyTab({ edrpou }) {
             />
             {edrpou && (
               <div style={{ padding: '12px 14px', fontSize: 12, color: '#6b7280', backgroundColor: '#f9fafb', borderTop: '1px solid #e5e7eb' }}>
-                💡 Шукаєте компанію <strong>{edrpou}</strong>? Використайте пошук в Uspacy або прокрутіть список
+                🔍 Пошук за ЄДРПОУ: <strong>{edrpou}</strong>
               </div>
             )}
           </div>
