@@ -370,12 +370,13 @@ const TD = { padding: '8px 14px', color: '#374151' };
 export default function SearchAggregate() {
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const [search,   setSearch]   = useState(searchParams.get('q') || '');
-  const [licenses, setLicenses] = useState(null);
-  const [certs,    setCerts]    = useState(null);
-  const [loading,  setLoading]  = useState(false);
-  const [error,    setError]    = useState('');
-  const [searched, setSearched] = useState('');
+  const [search,      setSearch]      = useState(searchParams.get('q') || '');
+  const [licenses,    setLicenses]    = useState(null);
+  const [certs,       setCerts]       = useState(null);
+  const [loading,     setLoading]     = useState(false);
+  const [error,       setError]       = useState('');
+  const [searched,    setSearched]    = useState('');
+  const [crmOpen,     setCrmOpen]     = useState(false);
 
   useEffect(() => {
     const q = searchParams.get('q');
@@ -511,7 +512,52 @@ export default function SearchAggregate() {
           <>
             {licenses && licenses.length > 0 && <LicensesSection licenses={licenses} />}
             {certs    && certs.length    > 0 && <CertsSection    certs={certs} />}
-            <UspacyTab edrpou={searched} />
+
+            {/* CRM Collapsible Panel */}
+            <div style={{
+              marginTop: 24, border: '1px solid #e5e7eb', borderRadius: 12,
+              overflow: 'hidden', boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
+            }}>
+              {/* Header - Clickable */}
+              <button
+                onClick={() => setCrmOpen(!crmOpen)}
+                style={{
+                  width: '100%', padding: '14px 18px', backgroundColor: '#fff',
+                  border: 'none', cursor: 'pointer', display: 'flex',
+                  alignItems: 'center', gap: 12, justifyContent: 'space-between',
+                  borderBottom: crmOpen ? '1px solid #e5e7eb' : 'none',
+                  transition: 'all 0.2s',
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#fff'}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1 }}>
+                  <span style={{ fontSize: '1.1rem' }}>🌐</span>
+                  <div style={{ textAlign: 'left' }}>
+                    <div style={{ fontWeight: 700, fontSize: '1rem', color: '#111827' }}>
+                      Uspacy CRM
+                    </div>
+                    <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>
+                      {searched && `Пошук: ${searched}`}
+                    </div>
+                  </div>
+                </div>
+                <div style={{
+                  fontSize: '1.2rem', color: '#6b7280',
+                  transform: crmOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                  transition: 'transform 0.2s',
+                }}>
+                  ▼
+                </div>
+              </button>
+
+              {/* Content - Expandable */}
+              {crmOpen && (
+                <div style={{ background: '#fff' }}>
+                  <UspacyTab edrpou={searched} />
+                </div>
+              )}
+            </div>
           </>
         )}
       </div>
