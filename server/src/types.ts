@@ -4,6 +4,10 @@ export interface Config {
   CERTS_API_KEY: string;
   JWT_SECRET: string;
   GOOGLE_CLIENT_ID: string;
+  MEDOC_API_URL: string;
+  MEDOC_USER_AGENT: string;
+  MEDOC_DECRYPT_MARKER: string;
+  MEDOC_XOR_KEY: string;
 }
 
 export interface Cert {
@@ -64,4 +68,42 @@ export interface JWTPayload {
   email: string;
   iat: number;
   exp: number;
+}
+
+// M.E.Doc license types
+export interface MedocRawModule {
+  name_module: string;
+  end_date?: string | null;
+}
+
+export interface MedocRawLicense {
+  LIC_Id?: string;
+  LIC_Type?: string;
+  LIC_EndDate?: string | null;
+  LIC_CreDate?: string | null;
+  Quantity?: string;
+  Lic_TypeR?: MedocRawModule[];
+  [key: string]: unknown;
+}
+
+/** One parsed module within a license. */
+export interface MedocModule {
+  name_module: string;
+  end_date: string | null; // ISO YYYY-MM-DD
+}
+
+/**
+ * One license object returned to the frontend.
+ * Corresponds to one item in the raw API array (one purchase / license record).
+ * `modules` contains regular feature modules; `forms_set` is the "Комплект бланків"
+ * entry extracted from the modules list (the module whose name contains "комплект").
+ */
+export interface MedocLicenseGroup {
+  lic_id: string;
+  lic_type: string;           // raw LIC_Type value from the API
+  lic_type_name: string;      // human-readable: "Мережева версія" etc.
+  lic_end_date: string | null; // ISO YYYY-MM-DD
+  lic_cre_date: string | null; // ISO YYYY-MM-DD
+  forms_set: string | null;    // "Повний комплект" / "Єдиний комплект" if present
+  modules: MedocModule[];
 }

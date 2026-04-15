@@ -13,6 +13,9 @@ const config = {
     },
     CERTS: {
       SEARCH: '/api/certs'
+    },
+    MEDOC: {
+      SEARCH: '/api/medoc'
     }
   },
   

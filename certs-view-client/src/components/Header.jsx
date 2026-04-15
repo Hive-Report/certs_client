@@ -1,5 +1,21 @@
 import React, { useState } from 'react';
+import { NavLink } from 'react-router-dom';
 import { Image, Button, Navbar, Container } from 'react-bootstrap';
+
+const BRAND_PRIMARY = '#32C48D';
+
+const navLinkStyle = ({ isActive }) => ({
+  display: 'inline-block',
+  padding: '6px 14px',
+  borderRadius: 8,
+  fontWeight: 500,
+  fontSize: '0.95rem',
+  textDecoration: 'none',
+  transition: 'background 0.15s, color 0.15s',
+  backgroundColor: isActive ? BRAND_PRIMARY : 'transparent',
+  color: isActive ? '#fff' : '#374151',
+  cursor: 'pointer',
+});
 
 const Header = ({ username, avatarUrl, onLogout }) => {
   const [avatarError, setAvatarError] = useState(false);
@@ -27,21 +43,35 @@ const Header = ({ username, avatarUrl, onLogout }) => {
       bg="white"
       variant="light"
       className="shadow-sm border-bottom"
-      style={{ minHeight: 64 }}
+      style={{ minHeight: 64, borderBottom: `2px solid ${BRAND_PRIMARY}` }}
     >
       <Container fluid style={{ padding: '0 3rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        {/* Left section: logo */}
-        <Navbar.Brand href="/" className="d-flex align-items-center gap-3" style={{ fontWeight: 600, fontSize: '1.25rem', color: '#1f2937' }}>
-          <Image
-            src="/hive_logo.jpg"
-            alt="Hive Report"
-            rounded
-            height={64}
-            width={64}
-            style={{ objectFit: 'contain' }}
-          />
-          <span>Hive Report</span>
-        </Navbar.Brand>
+        {/* Left section: logo + navigation */}
+        <div className="d-flex align-items-center gap-4">
+          <Navbar.Brand href="/" className="d-flex align-items-center gap-3" style={{ fontWeight: 600, fontSize: '1.25rem', color: '#1f2937', textDecoration: 'none' }}>
+            <Image
+              src="/hive_logo.jpg"
+              alt="Hive Report"
+              rounded
+              height={64}
+              width={64}
+              style={{ objectFit: 'contain' }}
+            />
+            <span style={{ color: BRAND_PRIMARY }}>Hive Report</span>
+          </Navbar.Brand>
+
+          <nav className="d-flex gap-1">
+            <NavLink to="/overview" style={navLinkStyle}>
+              🗂️ Зведений вигляд
+            </NavLink>
+            <NavLink to="/certs" style={navLinkStyle}>
+              🔐 Сертифікати
+            </NavLink>
+            <NavLink to="/medoc_license" style={navLinkStyle}>
+              🐝 Ліцензії M.E.Doc
+            </NavLink>
+          </nav>
+        </div>
 
         {/* Right section: username, avatar, logout button */}
         <div className="d-flex align-items-center gap-3">
@@ -65,7 +95,6 @@ const Header = ({ username, avatarUrl, onLogout }) => {
                 boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
               }}
             >
-              {/* fallback emoji або іконка */}
               🙂
             </div>
           ) : (
