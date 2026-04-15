@@ -16,7 +16,7 @@ export default function UspacyTab({ edrpou }) {
       }}>
         <span style={{ fontSize: '1.1rem' }}>🌐</span>
         <div>
-          <div style={{ fontWeight: 700, fontSize: '1rem', color: '#111827' }}>Uspacy CRM</div>
+          <div style={{ fontWeight: 700, fontSize: '1rem', color: '#111827' }}>Uspacy</div>
           {edrpou && (
             <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>
               Пошук: <strong>{edrpou}</strong>

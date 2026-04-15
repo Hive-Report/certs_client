@@ -535,7 +535,7 @@ export default function SearchAggregate() {
                   <span style={{ fontSize: '1.1rem' }}>🌐</span>
                   <div style={{ textAlign: 'left' }}>
                     <div style={{ fontWeight: 700, fontSize: '1rem', color: '#111827' }}>
-                      Uspacy CRM
+                      Uspacy
                     </div>
                     <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>
                       {searched && `Пошук: ${searched}`}
