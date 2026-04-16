@@ -8,6 +8,30 @@ export interface Config {
   MEDOC_USER_AGENT: string;
   MEDOC_DECRYPT_MARKER: string;
   MEDOC_XOR_KEY: string;
+  SUZS_EMAIL: string;
+  SUZS_PASSWORD: string;
+}
+
+/** One payment row from cert.suzs.info */
+export interface SuzsPayment {
+  edrpou: string;
+  name: string;
+  sum: string;
+  used_sum: string;
+  date: string;
+  credited_date: string;
+  purpose: string;
+  cert_until: string;
+}
+
+export interface SuzsPaymentSummary {
+  count: number;
+  total_sum: string;
+}
+
+export interface SuzsPaymentResult {
+  payments: SuzsPayment[];
+  summary: SuzsPaymentSummary;
 }
 
 export interface Cert {

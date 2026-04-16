@@ -70,6 +70,9 @@ const Header = ({ username, avatarUrl, onLogout }) => {
             <NavLink to="/medoc_license" style={navLinkStyle}>
               🐝 Ліцензії M.E.Doc
             </NavLink>
+            <NavLink to="/cert-payments" style={navLinkStyle}>
+              💳 Оплати КЕП
+            </NavLink>
           </nav>
         </div>
 

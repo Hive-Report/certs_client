@@ -17,6 +17,8 @@ const getTestConfig = (): Config => {
     MEDOC_USER_AGENT: 'medoc1102192',
     MEDOC_DECRYPT_MARKER: '100464541611',
     MEDOC_XOR_KEY: 'test-xor-key',
+    SUZS_EMAIL:    'test@test.com',
+    SUZS_PASSWORD: 'test-password',
   };
 };
 
@@ -43,6 +45,8 @@ const getProductionConfig = (): Config => {
     MEDOC_USER_AGENT: required('MEDOC_USER_AGENT', process.env.MEDOC_USER_AGENT),
     MEDOC_DECRYPT_MARKER: required('MEDOC_DECRYPT_MARKER', process.env.MEDOC_DECRYPT_MARKER),
     MEDOC_XOR_KEY: required('MEDOC_XOR_KEY', process.env.MEDOC_XOR_KEY),
+    SUZS_EMAIL:    required('SUZS_EMAIL',    process.env.SUZS_EMAIL),
+    SUZS_PASSWORD: required('SUZS_PASSWORD', process.env.SUZS_PASSWORD),
   };
 };
 
