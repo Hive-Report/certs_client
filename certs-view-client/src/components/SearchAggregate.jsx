@@ -464,7 +464,7 @@ export default function SearchAggregate() {
             <input
               className="form-control"
               type="text"
-              placeholder="Введіть ЄДРПОУ..."
+              placeholder="Введіть ЄДРПОУ"
               value={search}
               onChange={e => setSearch(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && handleSearch()}
