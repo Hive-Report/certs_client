@@ -95,7 +95,7 @@ export default function SearchBulk() {
     const tasks = edrpous.map(edrpou => async () => {
       if (abortRef.current) return;
 
-      const [licData, certData] = await Promise.all([
+      const [licData, certData, dealerResult] = await Promise.all([
         edrpouCache.hasMedoc(edrpou)
           ? Promise.resolve(edrpouCache.getMedoc(edrpou) ?? [])
           : apiService.searchMedoc(edrpou)
@@ -106,7 +106,13 @@ export default function SearchBulk() {
           : apiService.searchCerts(edrpou)
               .then(d => { const a = Array.isArray(d) ? d : (d?.data ?? []); edrpouCache.setCerts(edrpou, a); return a; })
               .catch(() => []),
+        edrpouCache.hasDealer(edrpou)
+          ? Promise.resolve({ dealer: edrpouCache.getDealer(edrpou) })
+          : apiService.getMedocDealer(edrpou)
+              .then(r => { edrpouCache.setDealer(edrpou, r?.dealer ?? null); return r; })
+              .catch(() => ({ dealer: null })),
       ]);
+      const dealer = dealerResult?.dealer ?? null;
 
       // Org name: latest "Печатка" cert
       const sealCert = [...certData]
@@ -132,6 +138,9 @@ export default function SearchBulk() {
           item: name,
           endDate,
           days: daysLeft(endDate),
+          dealer,
+          certType: null,
+          adminReg: null,
         });
       }
 
@@ -147,6 +156,9 @@ export default function SearchBulk() {
           item: cert.name || '—',
           endDate: iso,
           days: daysLeft(iso),
+          dealer: null,
+          certType: cert.type || null,
+          adminReg: cert.admin_reg || null,
         });
       }
 
@@ -168,13 +180,16 @@ export default function SearchBulk() {
       'Організація':                          r.orgName,
       'Тип':                                  r.type,
       'Назва модуля / Власник сертифіката':   r.item,
+      'Тип сертифіката':                      r.certType ?? '',
+      'Дилер / Адм. реєстрації':              r.dealer ?? r.adminReg ?? '',
       'Дата закінчення':                      formatDate(r.endDate),
       'Залишилось днів':                      r.days,
     }));
 
     const ws = XLSX.utils.json_to_sheet(data);
     ws['!cols'] = [
-      { wch: 14 }, { wch: 42 }, { wch: 22 }, { wch: 52 }, { wch: 18 }, { wch: 16 },
+      { wch: 14 }, { wch: 42 }, { wch: 22 }, { wch: 52 },
+      { wch: 18 }, { wch: 32 }, { wch: 18 }, { wch: 16 },
     ];
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Поновлення');
@@ -287,10 +302,12 @@ export default function SearchBulk() {
                   <tr style={{ backgroundColor: '#f9fafb' }}>
                     <th style={TH}>ЄДРПОУ</th>
                     <th style={TH}>Організація</th>
-                    <th style={{ ...TH, width: 160 }}>Тип</th>
+                    <th style={{ ...TH, width: 150 }}>Тип</th>
                     <th style={TH}>Модуль / Сертифікат</th>
-                    <th style={{ ...TH, width: 130 }}>Закінчується</th>
-                    <th style={{ ...TH, width: 110 }}>Залишилось</th>
+                    <th style={{ ...TH, width: 120 }}>Тип серт.</th>
+                    <th style={{ ...TH, width: 200 }}>Дилер / Адм. реєстрації</th>
+                    <th style={{ ...TH, width: 125 }}>Закінчується</th>
+                    <th style={{ ...TH, width: 105 }}>Залишилось</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -319,6 +336,12 @@ export default function SearchBulk() {
                           </span>
                         </td>
                         <td style={TD}>{row.item}</td>
+                        <td style={{ ...TD, color: '#6b7280', whiteSpace: 'nowrap' }}>
+                          {row.certType || '—'}
+                        </td>
+                        <td style={{ ...TD, maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {row.dealer || row.adminReg || '—'}
+                        </td>
                         <td style={{ ...TD, fontWeight: 600, whiteSpace: 'nowrap' }}>
                           {formatDate(row.endDate)}
                         </td>
