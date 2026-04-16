@@ -108,7 +108,7 @@ export default function SearchCertPayment() {
 
   const [dateStart,   setDateStart]   = useState(searchParams.get('ds')   || firstOfMonthDmy());
   const [dateEnd,     setDateEnd]     = useState(searchParams.get('de')   || todayDmy());
-  const [edrpou,      setEdrpou]      = useState(searchParams.get('e')    || '');
+  const [edrpou,      setEdrpou]      = useState(searchParams.get('e')    || localStorage.getItem('hive_last_edrpou') || '');
   const [naznachenie, setNaznachenie] = useState(searchParams.get('nazn') || '');
 
   const [payments,  setPayments]  = useState(null);
@@ -139,6 +139,7 @@ export default function SearchCertPayment() {
       ...(naznachenie ? { naznachenie } : {}),
     });
 
+    if (edrpou.trim()) localStorage.setItem('hive_last_edrpou', edrpou.trim());
     setSearchParams({
       ds: dateStart, de: dateEnd,
       ...(edrpou      ? { e:    edrpou }      : {}),

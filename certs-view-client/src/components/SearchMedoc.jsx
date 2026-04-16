@@ -193,7 +193,7 @@ function TypePanel({ licenses }) {
 export default function SearchMedoc() {
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const [search,   setSearch]   = useState(searchParams.get('q') || '');
+  const [search,   setSearch]   = useState(searchParams.get('q') || localStorage.getItem('hive_last_edrpou') || '');
   const [data,     setData]     = useState([]);
   const [loading,  setLoading]  = useState(false);
   const [error,    setError]    = useState('');
@@ -215,6 +215,7 @@ export default function SearchMedoc() {
       const list = Array.isArray(result) ? result : [];
       setData(list);
       setSearched(edrpou.trim());
+      localStorage.setItem('hive_last_edrpou', edrpou.trim());
       // Set default tab to first available type
       const firstType = list.length > 0 ? list[0].lic_type : '';
       const tabParam   = searchParams.get('tab');

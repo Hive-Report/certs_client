@@ -370,7 +370,7 @@ const TD = { padding: '8px 14px', color: '#374151' };
 export default function SearchAggregate() {
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const [search,      setSearch]      = useState(searchParams.get('q') || '');
+  const [search,      setSearch]      = useState(searchParams.get('q') || localStorage.getItem('hive_last_edrpou') || '');
   const [licenses,    setLicenses]    = useState(null);
   const [certs,       setCerts]       = useState(null);
   const [loading,     setLoading]     = useState(false);
@@ -414,6 +414,7 @@ export default function SearchAggregate() {
     }
 
     setSearched(edrpou.trim());
+    localStorage.setItem('hive_last_edrpou', edrpou.trim());
     setSearchParams({ q: edrpou.trim() }, { replace: true });
     setLoading(false);
   };

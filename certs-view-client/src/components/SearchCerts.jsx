@@ -5,7 +5,7 @@ import apiService from '../services/apiService.js';
 export default function SearchCerts() {
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const [search, setSearch] = useState(searchParams.get('q') || '');
+  const [search, setSearch] = useState(searchParams.get('q') || localStorage.getItem('hive_last_edrpou') || '');
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -120,6 +120,7 @@ export default function SearchCerts() {
     setError('');
 
     // Push q to URL immediately
+    localStorage.setItem('hive_last_edrpou', search.trim());
     setSearchParams({ q: search.trim() }, { replace: true });
 
     try {
