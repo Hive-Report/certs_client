@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import apiService from '../services/apiService.js';
 
@@ -34,6 +34,74 @@ function applyDateMask(raw) {
 function isValidDmy(dmy) {
   return /^\d{2}\.\d{2}\.\d{4}$/.test(dmy);
 }
+// DD.MM.YYYY → YYYY-MM-DD (for hidden date input)
+function dmyToIso(dmy) {
+  if (!isValidDmy(dmy)) return '';
+  const [d, m, y] = dmy.split('.');
+  return `${y}-${m}-${d}`;
+}
+// YYYY-MM-DD → DD.MM.YYYY
+function isoToDmy(iso) {
+  if (!iso || !/^\d{4}-\d{2}-\d{2}$/.test(iso)) return '';
+  const [y, m, d] = iso.split('-');
+  return `${d}.${m}.${y}`;
+}
+
+// ── Date input with DD.MM.YYYY text mask + calendar icon ─────────────────────
+function DateInput({ label, value, onChange, onEnter }) {
+  const hiddenRef = useRef(null);
+
+  const openPicker = () => {
+    if (hiddenRef.current) {
+      try { hiddenRef.current.showPicker(); }
+      catch { hiddenRef.current.click(); }
+    }
+  };
+
+  return (
+    <div>
+      <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#6b7280', marginBottom: 4, textTransform: 'uppercase' }}>
+        {label}
+      </label>
+      <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+        <input
+          type="text"
+          className="form-control"
+          style={{ width: 140, paddingRight: 32 }}
+          placeholder="ДД.ММ.РРРР"
+          value={value}
+          onChange={e => onChange(applyDateMask(e.target.value))}
+          onKeyDown={e => e.key === 'Enter' && onEnter?.()}
+          maxLength={10}
+        />
+        {/* Calendar icon button */}
+        <button
+          type="button"
+          onClick={openPicker}
+          style={{
+            position: 'absolute', right: 6, background: 'none', border: 'none',
+            padding: 0, cursor: 'pointer', color: '#9ca3af', fontSize: 15, lineHeight: 1,
+          }}
+          tabIndex={-1}
+          title="Обрати дату"
+        >
+          📅
+        </button>
+        {/* Hidden native date input — only used for the picker UI */}
+        <input
+          ref={hiddenRef}
+          type="date"
+          value={dmyToIso(value)}
+          onChange={e => onChange(isoToDmy(e.target.value))}
+          style={{ position: 'absolute', opacity: 0, pointerEvents: 'none', width: 0, height: 0 }}
+          tabIndex={-1}
+        />
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 export default function SearchCertPayment() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -64,7 +132,6 @@ export default function SearchCertPayment() {
     setPayments(null);
     setSummary(null);
 
-    // Dates are already in DD.MM.YYYY — pass directly to API
     const params = new URLSearchParams({
       dateStart,
       dateEnd,
@@ -104,39 +171,8 @@ export default function SearchCertPayment() {
         <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: '18px 20px', marginBottom: 24, boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, alignItems: 'flex-end' }}>
 
-            {/* Date Start */}
-            <div>
-              <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#6b7280', marginBottom: 4, textTransform: 'uppercase' }}>
-                З
-              </label>
-              <input
-                type="text"
-                className="form-control"
-                style={{ width: 140 }}
-                placeholder="ДД.ММ.РРРР"
-                value={dateStart}
-                onChange={e => setDateStart(applyDateMask(e.target.value))}
-                onKeyDown={e => e.key === 'Enter' && doSearch()}
-                maxLength={10}
-              />
-            </div>
-
-            {/* Date End */}
-            <div>
-              <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#6b7280', marginBottom: 4, textTransform: 'uppercase' }}>
-                По
-              </label>
-              <input
-                type="text"
-                className="form-control"
-                style={{ width: 140 }}
-                placeholder="ДД.ММ.РРРР"
-                value={dateEnd}
-                onChange={e => setDateEnd(applyDateMask(e.target.value))}
-                onKeyDown={e => e.key === 'Enter' && doSearch()}
-                maxLength={10}
-              />
-            </div>
+            <DateInput label="З"  value={dateStart} onChange={setDateStart} onEnter={doSearch} />
+            <DateInput label="По" value={dateEnd}   onChange={setDateEnd}   onEnter={doSearch} />
 
             {/* EDRPOU */}
             <div>
@@ -147,7 +183,6 @@ export default function SearchCertPayment() {
                 type="text"
                 className="form-control"
                 style={{ width: 160 }}
-                placeholder=""
                 value={edrpou}
                 onChange={e => setEdrpou(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && doSearch()}
@@ -162,7 +197,6 @@ export default function SearchCertPayment() {
               <input
                 type="text"
                 className="form-control"
-                placeholder=""
                 value={naznachenie}
                 onChange={e => setNaznachenie(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && doSearch()}
