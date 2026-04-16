@@ -12,25 +12,34 @@ const TH = {
 };
 const TD = { padding: '8px 12px', fontSize: 13, color: '#374151', verticalAlign: 'top' };
 
-// YYYY-MM-DD → DD.MM.YYYY for API
-function toApiDate(ymd) {
-  if (!ymd) return '';
-  const [y, m, d] = ymd.split('-');
-  return `${d}.${m}.${y}`;
-}
-function todayYmd() {
-  return new Date().toISOString().slice(0, 10);
-}
-function firstOfMonthYmd() {
+// Returns today as DD.MM.YYYY
+function todayDmy() {
   const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`;
+  return `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.${d.getFullYear()}`;
+}
+// Returns first day of current month as DD.MM.YYYY
+function firstOfMonthDmy() {
+  const d = new Date();
+  return `01.${String(d.getMonth() + 1).padStart(2, '0')}.${d.getFullYear()}`;
+}
+// Auto-mask: inserts dots after DD and MM while user types
+function applyDateMask(raw) {
+  const digits = raw.replace(/\D/g, '').slice(0, 8);
+  let result = digits;
+  if (digits.length > 2) result = digits.slice(0, 2) + '.' + digits.slice(2);
+  if (digits.length > 4) result = result.slice(0, 5) + '.' + digits.slice(4);
+  return result;
+}
+// Validates DD.MM.YYYY
+function isValidDmy(dmy) {
+  return /^\d{2}\.\d{2}\.\d{4}$/.test(dmy);
 }
 
 export default function SearchCertPayment() {
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const [dateStart,   setDateStart]   = useState(searchParams.get('ds')   || firstOfMonthYmd());
-  const [dateEnd,     setDateEnd]     = useState(searchParams.get('de')   || todayYmd());
+  const [dateStart,   setDateStart]   = useState(searchParams.get('ds')   || firstOfMonthDmy());
+  const [dateEnd,     setDateEnd]     = useState(searchParams.get('de')   || todayDmy());
   const [edrpou,      setEdrpou]      = useState(searchParams.get('e')    || '');
   const [naznachenie, setNaznachenie] = useState(searchParams.get('nazn') || '');
 
@@ -46,15 +55,19 @@ export default function SearchCertPayment() {
   }, []);
 
   const doSearch = async () => {
-    if (!dateStart || !dateEnd) { setError('Вкажіть обидві дати'); return; }
+    if (!isValidDmy(dateStart) || !isValidDmy(dateEnd)) {
+      setError('Введіть дати у форматі ДД.ММ.РРРР');
+      return;
+    }
     setLoading(true);
     setError('');
     setPayments(null);
     setSummary(null);
 
+    // Dates are already in DD.MM.YYYY — pass directly to API
     const params = new URLSearchParams({
-      dateStart:    toApiDate(dateStart),
-      dateEnd:      toApiDate(dateEnd),
+      dateStart,
+      dateEnd,
       ...(edrpou      ? { edrpou }      : {}),
       ...(naznachenie ? { naznachenie } : {}),
     });
@@ -97,11 +110,14 @@ export default function SearchCertPayment() {
                 З
               </label>
               <input
-                type="date"
+                type="text"
                 className="form-control"
-                style={{ width: 160 }}
+                style={{ width: 140 }}
+                placeholder="ДД.ММ.РРРР"
                 value={dateStart}
-                onChange={e => setDateStart(e.target.value)}
+                onChange={e => setDateStart(applyDateMask(e.target.value))}
+                onKeyDown={e => e.key === 'Enter' && doSearch()}
+                maxLength={10}
               />
             </div>
 
@@ -111,11 +127,14 @@ export default function SearchCertPayment() {
                 По
               </label>
               <input
-                type="date"
+                type="text"
                 className="form-control"
-                style={{ width: 160 }}
+                style={{ width: 140 }}
+                placeholder="ДД.ММ.РРРР"
                 value={dateEnd}
-                onChange={e => setDateEnd(e.target.value)}
+                onChange={e => setDateEnd(applyDateMask(e.target.value))}
+                onKeyDown={e => e.key === 'Enter' && doSearch()}
+                maxLength={10}
               />
             </div>
 
