@@ -436,7 +436,7 @@ export default function SearchAggregate() {
   const _saved = pageStateStore.get('aggregate');
   const _urlQ  = searchParams.get('q');
 
-  const [search,      setSearch]      = useState(_urlQ || _saved?.search || localStorage.getItem('hive_last_edrpou') || '');
+  const [search,      setSearch]      = useState(_urlQ || localStorage.getItem('hive_last_edrpou') || _saved?.search || '');
   const [licenses,    setLicenses]    = useState(_saved?.licenses ?? null);
   const [certs,       setCerts]       = useState(_saved?.certs    ?? null);
   const [dealer,      setDealer]      = useState(_saved?.dealer   ?? null);
@@ -450,9 +450,9 @@ export default function SearchAggregate() {
 
   useEffect(() => {
     const q = searchParams.get('q');
-    // If the store already has results for this EDRPOU, skip the network call
-    if (_saved?.searched && (!q || _saved.searched === q)) return;
     const target = q || localStorage.getItem('hive_last_edrpou') || '';
+    // Skip only if we already have results for this exact EDRPOU
+    if (target && _saved?.searched === target) return;
     if (target) doSearch(target);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

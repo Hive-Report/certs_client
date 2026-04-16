@@ -51,7 +51,7 @@ export default function SearchCerts() {
     catch { return null; }
   })();
 
-  const [search, setSearch] = useState(_urlQ || _saved?.search || localStorage.getItem('hive_last_edrpou') || '');
+  const [search, setSearch] = useState(_urlQ || localStorage.getItem('hive_last_edrpou') || _saved?.search || '');
   const [data,   setData]   = useState(_saved?.data ?? []);
   const [loading, setLoading] = useState(false);
   const [error,   setError]   = useState('');
@@ -105,11 +105,11 @@ export default function SearchCerts() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters, columnSettings, sortConfig, showFilters]);
 
-  // Auto-search on mount — skip if store has matching results
+  // Auto-search on mount — skip only if we already have results for this exact EDRPOU
   useEffect(() => {
     const q = searchParams.get('q');
-    if (_saved?.search && (!q || _saved.search === q)) return;
     const target = q || localStorage.getItem('hive_last_edrpou') || '';
+    if (target && _saved?.search === target) return;
     if (target) {
       setSearch(target);
       (async () => {

@@ -199,7 +199,7 @@ export default function SearchMedoc() {
   const _saved = pageStateStore.get('medoc');
   const _urlQ  = searchParams.get('q');
 
-  const [search,    setSearch]    = useState(_urlQ || _saved?.search || localStorage.getItem('hive_last_edrpou') || '');
+  const [search,    setSearch]    = useState(_urlQ || localStorage.getItem('hive_last_edrpou') || _saved?.search || '');
   const [data,      setData]      = useState(_saved?.data     ?? []);
   const [dealer,    setDealer]    = useState(_saved?.dealer   ?? null);
   const [loading,   setLoading]   = useState(false);
@@ -207,11 +207,11 @@ export default function SearchMedoc() {
   const [searched,  setSearched]  = useState(_saved?.searched ?? '');
   const [activeTab, setActiveTab] = useState(_saved?.activeTab || searchParams.get('tab') || '');
 
-  // Auto-search on mount — skip if store has matching results
+  // Auto-search on mount — skip only if we already have results for this exact EDRPOU
   useEffect(() => {
     const q = searchParams.get('q');
-    if (_saved?.searched && (!q || _saved.searched === q)) return;
     const target = q || localStorage.getItem('hive_last_edrpou') || '';
+    if (target && _saved?.searched === target) return;
     if (target) doSearch(target);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

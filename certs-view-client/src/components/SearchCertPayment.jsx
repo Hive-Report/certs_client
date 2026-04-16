@@ -23,6 +23,12 @@ function firstOfMonthDmy() {
   const d = new Date();
   return `01.${String(d.getMonth() + 1).padStart(2, '0')}.${d.getFullYear()}`;
 }
+// Returns last day of current month as DD.MM.YYYY
+function lastOfMonthDmy() {
+  const d = new Date();
+  const last = new Date(d.getFullYear(), d.getMonth() + 1, 0);
+  return `${String(last.getDate()).padStart(2, '0')}.${String(last.getMonth() + 1).padStart(2, '0')}.${last.getFullYear()}`;
+}
 // Auto-mask: inserts dots after DD and MM while user types
 function applyDateMask(raw) {
   const digits = raw.replace(/\D/g, '').slice(0, 8);
@@ -111,7 +117,7 @@ export default function SearchCertPayment() {
   const _saved = pageStateStore.get('certPayments');
 
   const [dateStart,   setDateStart]   = useState(_saved?.dateStart   || searchParams.get('ds') || firstOfMonthDmy());
-  const [dateEnd,     setDateEnd]     = useState(_saved?.dateEnd     || searchParams.get('de') || todayDmy());
+  const [dateEnd,     setDateEnd]     = useState(_saved?.dateEnd     || searchParams.get('de') || lastOfMonthDmy());
   const [edrpou,      setEdrpou]      = useState(_saved?.edrpou      || searchParams.get('e')  || localStorage.getItem('hive_last_edrpou') || '');
   const [naznachenie, setNaznachenie] = useState(_saved?.naznachenie || searchParams.get('nazn') || '');
 
