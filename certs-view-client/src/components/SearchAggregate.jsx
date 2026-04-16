@@ -443,8 +443,8 @@ export default function SearchAggregate() {
   const [loading,     setLoading]     = useState(false);
   const [error,       setError]       = useState('');
   const [searched,    setSearched]    = useState(_saved?.searched ?? '');
-  const [crmOpen,      setCrmOpen]      = useState(false);
-  const [crmMounted,   setCrmMounted]   = useState(false); // lazy-mount: render only after first open
+  const [crmOpen,      setCrmOpen]      = useState(true);
+  const [crmMounted,   setCrmMounted]   = useState(true);
   const [crmSearching, setCrmSearching] = useState(false);
   const [crmCompanyId, setCrmCompanyId] = useState(_saved?.crmCompanyId ?? null); // Uspacy company ID
 
@@ -530,11 +530,10 @@ export default function SearchAggregate() {
   const handleCrmSearch = () => {
     if (!searched) return;
     setCrmSearching(true);
-    // Open CRM panel
     setCrmOpen(true);
     setCrmMounted(true);
-    // Trigger iframe reload by toggling state
     setTimeout(() => setCrmSearching(false), 500);
+    requestAnimationFrame(() => fastScroll(document.body.scrollHeight));
   };
 
   const hasData   = licenses !== null || certs !== null;
@@ -542,7 +541,6 @@ export default function SearchAggregate() {
 
   return (
     <div style={{ backgroundColor: PAGE_BG }}>
-      <>
       <div style={{ maxWidth: 1400, margin: '0 auto', padding: '24px 16px' }}>
 
         <h1 style={{ fontSize: '1.4rem', fontWeight: 700, color: '#111827', marginBottom: 6 }}>
@@ -633,63 +631,101 @@ export default function SearchAggregate() {
       </div>
 
       {/* CRM Collapsible Panel - Full Width */}
-      {searched && !loading && !hasNothing && (
-        <div style={{ marginTop: 24, borderTop: '1px solid #e5e7eb', backgroundColor: '#fff' }}>
-
-          {/* Header */}
-          <div style={{
-            padding: '14px 24px', display: 'flex', alignItems: 'center',
-            gap: 12, justifyContent: 'space-between',
-            borderBottom: crmOpen ? '1px solid #e5e7eb' : 'none',
-            cursor: 'pointer',
-          }}
-            onClick={() => { setCrmOpen(o => !o); setCrmMounted(true); }}
-            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
-            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#fff'}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <span style={{ fontSize: '1.1rem' }}>🌐</span>
-              <span style={{ fontWeight: 700, fontSize: '1rem', color: '#111827' }}>Uspacy</span>
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              {searched && (
-                <button
-                  onClick={handleCrmSearch}
-                  disabled={crmSearching}
-                  style={{
-                    padding: '6px 14px', fontSize: 12, fontWeight: 600,
-                    backgroundColor: BRAND, color: '#fff', border: 'none',
-                    borderRadius: 6, cursor: crmSearching ? 'not-allowed' : 'pointer',
-                    whiteSpace: 'nowrap', opacity: crmSearching ? 0.7 : 1,
-                  }}
-                >
-                  {crmSearching ? '⏳' : '🔍 Пошук'}
-                </button>
-              )}
-              <span style={{
-                fontSize: '1rem', color: '#6b7280',
-                display: 'inline-block',
-                transform: crmOpen ? 'rotate(0deg)' : 'rotate(180deg)',
-                transition: 'transform 0.2s',
-              }}>▼</span>
-            </div>
+      <div id="crm-panel" style={{ borderTop: '1px solid #e5e7eb', backgroundColor: '#fff' }}>
+        {/* Header */}
+        <div style={{
+          padding: '14px 24px', display: 'flex', alignItems: 'center',
+          gap: 12, justifyContent: 'space-between',
+          borderBottom: crmOpen ? '1px solid #e5e7eb' : 'none',
+          cursor: 'pointer',
+        }}
+          onClick={() => { setCrmOpen(o => !o); setCrmMounted(true); }}
+          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
+          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#fff'}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{ fontSize: '1.1rem' }}>🌐</span>
+            <span style={{ fontWeight: 700, fontSize: '1rem', color: '#111827' }}>Uspacy</span>
           </div>
 
-          {/* Content - full width iframe.
-               Lazy-mount: render only after the panel has been opened at
-               least once (crmMounted).  After that, use display:none/block
-               to hide/show so the iframe is never destroyed on collapse. */}
-          {crmMounted && (
-            <div style={{ display: crmOpen ? 'block' : 'none' }}>
-              <UspacyTab companyId={crmCompanyId} />
-            </div>
-          )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {searched && (
+              <button
+                onClick={handleCrmSearch}
+                disabled={crmSearching}
+                style={{
+                  padding: '6px 14px', fontSize: 12, fontWeight: 600,
+                  backgroundColor: BRAND, color: '#fff', border: 'none',
+                  borderRadius: 6, cursor: crmSearching ? 'not-allowed' : 'pointer',
+                  whiteSpace: 'nowrap', opacity: crmSearching ? 0.7 : 1,
+                }}
+              >
+                {crmSearching ? '⏳' : '🔍 Пошук'}
+              </button>
+            )}
+            <span style={{
+              fontSize: '1rem', color: '#6b7280',
+              display: 'inline-block',
+              transform: crmOpen ? 'rotate(0deg)' : 'rotate(180deg)',
+              transition: 'transform 0.2s',
+            }}>▼</span>
+          </div>
         </div>
-      )}
-      </>
+
+        {crmMounted && (
+          <div style={{ display: crmOpen ? 'block' : 'none' }}>
+            <UspacyTab companyId={crmCompanyId} />
+          </div>
+        )}
+      </div>
+
+      {/* Floating scroll shortcuts */}
+      <div style={{
+        position: 'fixed', right: 16, bottom: 24,
+        display: 'flex', flexDirection: 'column', gap: 6, zIndex: 1000,
+      }}>
+        <button
+          onClick={() => fastScroll(0)}
+          title="На початок сторінки"
+          style={scrollBtnStyle}
+        >↑</button>
+        <button
+          onClick={() => fastScroll(document.body.scrollHeight)}
+          title="В кінець сторінки"
+          style={scrollBtnStyle}
+        >↓</button>
+      </div>
     </div>
   );
 }
+
+function fastScroll(target) {
+  const start = window.scrollY;
+  const dist  = target - start;
+  const dur   = 150; // ms
+  let t0 = null;
+  function step(ts) {
+    if (!t0) t0 = ts;
+    const p = Math.min((ts - t0) / dur, 1);
+    // ease-out quad
+    window.scrollTo(0, start + dist * (1 - (1 - p) * (1 - p)));
+    if (p < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+const scrollBtnStyle = {
+  width: 32, height: 32,
+  backgroundColor: '#fff',
+  border: '1px solid #d1d5db',
+  borderRadius: 8,
+  fontSize: 14, fontWeight: 700,
+  color: '#6b7280',
+  cursor: 'pointer',
+  display: 'flex', alignItems: 'center', justifyContent: 'center',
+  boxShadow: '0 1px 4px rgba(0,0,0,0.12)',
+  lineHeight: 1,
+  padding: 0,
+};
