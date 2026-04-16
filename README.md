@@ -1,28 +1,118 @@
-# Сервіс Пошуку Сертифікатів
+# 📋 Система управління Ліцензіями та Сертифікатами КЕП
 
-Веб-додаток для пошуку та управління сертифікатами електронного підпису за ЄДРПОУ.
+**Закрита система для внутрішнього використання** — комплексна платформа для пошуку, управління та відстеження ліцензій програмного забезпечення M.E.Doc та цифрових сертифікатів електронного підпису (КЕП) українських організацій.
+
+---
+
+## 🎯 Суть проєкту
+
+Система призначена для внутрішнього використання та дозволяє:
+- **Отримувати дані** про ліцензії M.E.Doc та сертифікати КЕП по ЄДРПОУ організації
+- **Управляти інформацією** про ліцензійні модулі та їх терміни дії
+- **Відстежувати статус** сертифікатів (діючі, закінчуються, прострочені)
+- **Інтегруватися з CRM** (Uspacy) для повного управління даними клієнтів
+
+> ⚠️ **Приватна система** — доступна тільки для авторизованих користувачів. Не для публічного використання.
+
+---
+
+## ✨ Функціональні можливості
+
+### 📊 Модуль Ліцензій M.E.Doc
+- 🔍 Пошук ліцензій по ЄДРПОУ
+- 📋 Перегляд типів ліцензій (Локальна версія, Мережева версія, SAF-T UA)
+- 🔄 Автоматична дедуплікація модулів (збереження максимального терміну дії)
+- 📊 Статистика модулів (діючі, закінчуються за 2 місяці, прострочені)
+- 📋 Визначення комплекту бланків (Повний комплект / Єдиний податок)
+- 📋 Копіювання інформації про ліцензії в буфер обміну
+
+### 🔐 Модуль Сертифікатів КЕП
+- 🔐 Пошук цифрових сертифікатів по ЄДРПОУ
+- 📊 Фільтрування сертифікатів для підписання (діючі на сьогодні)
+- 🏢 Збагачення даних інформацією з SUZS (ІПН, email, телефон, адреса)
+- 📋 Налаштування видимості колонок (26+ полів даних)
+- 🔍 Повнотекстовий пошук та фільтрація
+- 📊 Статус сертифікатів (Діючий, Скасований, Заблокований)
+- 🏷️ Відображення назви організації з останнього "печатка" сертифіката
+
+### 🌐 Інтеграція з Uspacy CRM
+- 🌐 Вбудована панель Uspacy для управління даними клієнтів
+- 🔍 Розгортаюча панель з контекстом ЄДРПОУ
+- 📱 Кнопка пошуку для швидкого доступу до компанії в CRM
+- 🔐 Авторизована сесія користувача в фреймі
+
+### 👤 Аутентифікація та Авторизація
+- 🔐 Google OAuth 2.0 інтеграція
+- 🎫 24-годинні JWT токени для довгострокових сесій
+- 🔒 Захист приватних маршрутів
+- 📝 Реєстрація та вхід користувачів
+
+---
 
 ## 🏗️ Архітектура
 
-- **Frontend**: React + Tailwind CSS
-- **Backend**: Node.js + TypeScript + Express
-- **Containerization**: Docker + Docker Compose
+```
+Frontend (React)          Backend (Node.js)         Зовнішні сервіси
+    │                          │                           │
+    ├─ Overview Page ──────────┼─ /api/certs ────────────→ SUZS API
+    ├─ Licenses Search ────────┤─ /api/medoc ────────────→ M.E.Doc API
+    ├─ Certs Search ──────────┤─ /api/auth ─────────────→ Google OAuth
+    └─ Uspacy CRM ────────────┴─────────────────────────→ Uspacy
+```
 
-## 📋 Вимоги
+**Stack:**
+- **Frontend**: React 19, React Router v7, Tailwind CSS
+- **Backend**: Node.js, TypeScript, Express.js, SQLite
+- **API інтеграції**: M.E.Doc (XOR/Windows-1251), SUZS (HTML парсинг), Uspacy
+- **Контейнеризація**: Docker + Docker Compose
+- **Web Server**: Nginx (reverse proxy, SPA routing)
 
-- Docker >= 20.10
-- Docker Compose >= 1.29
+---
+
+## 📁 Структура проєкту
+
+```
+certs_client/
+├── certs-view-client/              # React Frontend
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── SearchAggregate.jsx # Зведений вигляд (ліцензії + сертифікати + CRM)
+│   │   │   ├── SearchMedoc.jsx     # Пошук ліцензій M.E.Doc
+│   │   │   ├── SearchCerts.jsx     # Пошук сертифікатів КЕП
+│   │   │   ├── UspacyTab.jsx       # Інтеграція Uspacy CRM
+│   │   │   └── GoogleLoginButton.jsx
+│   │   ├── services/
+│   │   │   └── apiService.js       # API клієнт
+│   │   └── App.js
+│   ├── Dockerfile
+│   ├── nginx.conf
+│   └── package.json
+├── server/                          # Node.js Backend
+│   ├── src/
+│   │   ├── controllers/            # API контролери
+│   │   ├── services/               # Бізнес-логіка
+│   │   │   ├── medoc/             # M.E.Doc інтеграція
+│   │   │   └── suzs/              # SUZS інтеграція
+│   │   ├── middleware/             # JWT, Google auth
+│   │   ├── router/                # API маршрути
+│   │   └── index.ts
+│   ├── Dockerfile
+│   └── package.json
+├── docker-compose.yml
+├── deploy.sh / deploy.bat
+└── README.md
+```
+
+---
 
 ## 🚀 Швидкий старт
 
-### 1. Клонування репозиторію
+### Вимоги
+- Docker >= 20.10
+- Docker Compose >= 1.29
+- Налаштування `.env` для API інтеграцій
 
-```bash
-git clone <repository-url>
-cd certs_client
-```
-
-### 2. Запуск з Docker Compose
+### Запуск
 
 #### Linux/macOS:
 ```bash
@@ -40,196 +130,150 @@ deploy.bat
 docker-compose up --build
 ```
 
-### 3. Доступ до сервісів
-
+### Доступ
 - **Frontend**: http://localhost:3000
 - **Backend API**: http://localhost:3001
 
-## 📁 Структура проєкту
+---
 
-```
-certs_client/
-├── certs-view-client/          # React Frontend
-│   ├── src/
-│   │   ├── components/
-│   │   │   └── SearchCerts.jsx
-│   │   ├── App.js
-│   │   └── index.js
-│   ├── public/
-│   ├── Dockerfile
-│   ├── nginx.conf
-│   └── package.json
-├── server/                     # Node.js Backend
-│   ├── src/
-│   │   ├── controllers/
-│   │   ├── services/
-│   │   ├── router/
-│   │   └── index.ts
-│   ├── Dockerfile
-│   ├── tsconfig.json
-│   └── package.json
-├── docker-compose.yml
-├── deploy.sh
-├── deploy.bat
-└── README.md
+## 🔧 Environment Variables
+
+### Frontend (.env)
+```env
+REACT_APP_API_URL=http://localhost:3001
 ```
 
-## 🔧 Розробка
+### Backend (.env)
+```env
+NODE_ENV=production
+PORT=3001
+CERTS_API_KEY=<api_key>
+JWT_SECRET=<secret_key>
+GOOGLE_CLIENT_ID=<google_client_id>
+MEDOC_API_URL=<medoc_api_url>
+MEDOC_USER_AGENT=<user_agent>
+MEDOC_DECRYPT_MARKER=<marker>
+MEDOC_XOR_KEY=<xor_key>
+```
 
-### Локальна розробка без Docker
+---
 
-#### Frontend:
+## 📊 API Endpoints
+
+### Ліцензії M.E.Doc
+```http
+GET /api/medoc/:edrpou
+```
+Повертає масив ліцензій з модулями, дедуплікованими та відсортованими по даті закінчення.
+
+### Сертифікати КЕП
+```http
+GET /api/certs/:edrpou
+```
+Повертає масив сертифікатів збагачених SUZS даними (email, телефон, адреса, ІПН).
+
+### Аутентифікація
+```http
+POST /api/auth/google
+```
+Google OAuth інтеграція з поверненням JWT токена.
+
+---
+
+## 💻 Локальна розробка
+
+### Frontend:
 ```bash
 cd certs-view-client
 npm install
 npm start
 ```
 
-#### Backend:
+### Backend:
 ```bash
 cd server
 npm install
 npm run dev
 ```
 
-### Збірка окремих сервісів
+---
 
-#### Frontend:
+## 📝 Ключові особливості реалізації
+
+### XOR Декодування (M.E.Doc)
+- Дані від M.E.Doc API надходять в кодованому вигляді (XOR + Windows-1251)
+- Декодування здійснюється на backend для безпеки
+
+### SUZS Парсинг
+- Отримання HTML сторінки з cert.suzs.info
+- Парсинг таблиці для екстракції ІПН, email, телефону, адреси
+- Енрічмент даних сертифікатів
+
+### Дедуплікація Модулів
+- Групування модулів по назві
+- Збереження максимального терміну дії для кожного модуля
+- Сортування за статусом (діючі → закінчуються → прострочені)
+
+### Promise.allSettled
+- Паралельна загрузка ліцензій та сертифікатів
+- Graceful degradation при помилках однієї з послуг
+
+---
+
+## 🔒 Безпека
+
+- ✅ JWT токени замість довгострокових Google токенів
+- ✅ HTTPS для всіх API запитів
+- ✅ CORS налаштування
+- ✅ XSS захист через React
+- ✅ Приватні маршути для авторизованих користувачів
+- ✅ Логування усіх операцій на backend
+
+---
+
+## 🐛 Видалагодження
+
 ```bash
-cd certs-view-client
-docker build -t certs-frontend .
-docker run -p 3000:80 certs-frontend
-```
-
-#### Backend:
-```bash
-cd server
-docker build -t certs-backend .
-docker run -p 3001:3001 certs-backend
-```
-
-## 🛠️ Налаштування
-
-### Environment Variables
-
-#### Frontend (.env):
-```
-REACT_APP_API_URL=http://localhost:3001
-```
-
-#### Backend (.env):
-```
-NODE_ENV=production
-PORT=3001
-```
-
-### Nginx Configuration
-
-Конфігурація nginx знаходиться у `certs-view-client/nginx.conf`:
-- Проксі для API запитів на backend
-- Кешування статичних ресурсів
-- Налаштування безпеки
-- Gzip стиснення
-
-## 📝 API Endpoints
-
-### Пошук сертифікатів
-```
-GET /api/certs/:edrpou
-```
-
-**Параметри:**
-- `edrpou`: ЄДРПОУ організації
-
-**Відповідь:**
-```json
-[
-  {
-    "serial": "1234567890",
-    "name": "Назва сертифікату",
-    "start_date": "2024-01-01",
-    "end_date": "2025-01-01",
-    "type": "Тип сертифікату",
-    "storage_type": "Тип зберігання",
-    "crypt": "Криптографія",
-    "status": "active"
-  }
-]
-```
-
-## 🔍 Функціональність
-
-### Frontend:
-- 🔍 Пошук за ЄДРПОУ
-- 📊 Таблиця з сертифікатами
-- 🔧 Налаштування стовпців
-- 🎛️ Фільтри (текстові, за датами)
-- 📋 Копіювання даних
-- 📱 Респонсивний дизайн
-
-### Backend:
-- 🔌 RESTful API
-- 📝 Логування
-- 🔒 Обробка помилок
-- ⚡ TypeScript
-
-## 🐛 Відлагодження
-
-### Перегляд логів:
-```bash
+# Логи всіх контейнерів
 docker-compose logs -f
-```
 
-### Перегляд логів окремого сервісу:
-```bash
-docker-compose logs -f frontend
+# Логи окремого сервісу
 docker-compose logs -f backend
-```
+docker-compose logs -f frontend
 
-### Зупинка сервісів:
-```bash
+# Зупинка
 docker-compose down
-```
 
-### Видалення контейнерів та образів:
-```bash
+# Очистка
 docker-compose down --rmi all --volumes
 ```
 
-## 🚀 Деплой
+---
 
-### Production Build:
-```bash
-# Збірка для продакшну
-docker-compose -f docker-compose.yml build
+## 📊 Технологічний стек
 
-# Запуск в продакшні
-docker-compose -f docker-compose.yml up -d
-```
+| Компонент | Технологія |
+|-----------|-----------|
+| **Frontend** | React 19, React Router v7, Tailwind CSS |
+| **Backend** | Node.js, TypeScript, Express.js |
+| **Database** | SQLite (локальне зберігання) |
+| **Auth** | Google OAuth 2.0, JWT |
+| **Контейнеризація** | Docker, Docker Compose |
+| **Web Server** | Nginx (reverse proxy) |
+| **API Integration** | M.E.Doc, SUZS, Uspacy |
 
-### Моніторинг:
-```bash
-# Статус контейнерів
-docker-compose ps
+---
 
-# Використання ресурсів
-docker stats
-```
+## 👥 Команда
 
-## 📚 Технології
+Розроблена для внутрішнього використання. Закрита система з обмеженим доступом.
 
-- **React 19**: UI фреймворк
-- **Tailwind CSS**: Стилізація
-- **Node.js 18**: Backend runtime
-- **TypeScript**: Типізація
-- **Express**: Web framework
-- **Docker**: Контейнеризація
-- **Nginx**: Reverse proxy
+---
 
-## 🤝 Внесок
+## 📄 Ліцензія
 
-1. Fork репозиторій
-2. Створіть feature branch
-3. Commit зміни
-4. Push до branch
-5. Створіть Pull Request
+**Приватна система** — Усі права захищені. Не для комерційного використання без дозволу.
+
+---
+
+**Остання оновлення**: квітень 2026
