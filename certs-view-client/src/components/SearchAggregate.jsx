@@ -433,7 +433,8 @@ export default function SearchAggregate() {
     const q = searchParams.get('q');
     // If the store already has results for this EDRPOU, skip the network call
     if (_saved?.searched && (!q || _saved.searched === q)) return;
-    if (q) doSearch(q);
+    const target = q || localStorage.getItem('hive_last_edrpou') || '';
+    if (target) doSearch(target);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

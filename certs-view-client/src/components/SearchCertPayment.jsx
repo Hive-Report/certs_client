@@ -112,7 +112,7 @@ export default function SearchCertPayment() {
 
   const [dateStart,   setDateStart]   = useState(_saved?.dateStart   || searchParams.get('ds') || firstOfMonthDmy());
   const [dateEnd,     setDateEnd]     = useState(_saved?.dateEnd     || searchParams.get('de') || todayDmy());
-  const [edrpou,      setEdrpou]      = useState(_saved?.edrpou      || searchParams.get('e')  || '');
+  const [edrpou,      setEdrpou]      = useState(_saved?.edrpou      || searchParams.get('e')  || localStorage.getItem('hive_last_edrpou') || '');
   const [naznachenie, setNaznachenie] = useState(_saved?.naznachenie || searchParams.get('nazn') || '');
 
   const [payments,    setPayments]    = useState(_saved?.payments  ?? null);
@@ -125,7 +125,9 @@ export default function SearchCertPayment() {
   // Restore from store on mount — skip auto-search if we have stored results
   useEffect(() => {
     if (_saved?.payments) return;  // already restored above
-    if (searchParams.get('ds')) doSearch(false);
+    if (searchParams.get('ds')) { doSearch(false); return; }
+    // No URL params — auto-search if there's a last-used EDRPOU
+    if (localStorage.getItem('hive_last_edrpou')) doSearch(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

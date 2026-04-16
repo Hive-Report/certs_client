@@ -104,20 +104,21 @@ export default function SearchCerts() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters, columnSettings, sortConfig, showFilters]);
 
-  // Auto-search on mount if q param present — skip if store has matching results
+  // Auto-search on mount — skip if store has matching results
   useEffect(() => {
     const q = searchParams.get('q');
     if (_saved?.search && (!q || _saved.search === q)) return;
-    if (q) {
-      setSearch(q);
+    const target = q || localStorage.getItem('hive_last_edrpou') || '';
+    if (target) {
+      setSearch(target);
       (async () => {
         setLoading(true);
         setError('');
         try {
-          const result = await apiService.searchCerts(q);
+          const result = await apiService.searchCerts(target);
           const list = Array.isArray(result) ? result : [];
           setData(list);
-          pageStateStore.set('certs', { search: q, data: list, filters, columnSettings, sortConfig, showFilters });
+          pageStateStore.set('certs', { search: target, data: list, filters, columnSettings, sortConfig, showFilters });
         } catch (err) {
           setError(err.message || 'Помилка при завантаженні даних');
           setData([]);

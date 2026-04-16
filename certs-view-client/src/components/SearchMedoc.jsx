@@ -205,11 +205,12 @@ export default function SearchMedoc() {
   const [searched,  setSearched]  = useState(_saved?.searched ?? '');
   const [activeTab, setActiveTab] = useState(_saved?.activeTab || searchParams.get('tab') || '');
 
-  // Auto-search on mount if q is in URL — skip if store already has matching results
+  // Auto-search on mount — skip if store has matching results
   useEffect(() => {
     const q = searchParams.get('q');
     if (_saved?.searched && (!q || _saved.searched === q)) return;
-    if (q) doSearch(q);
+    const target = q || localStorage.getItem('hive_last_edrpou') || '';
+    if (target) doSearch(target);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
