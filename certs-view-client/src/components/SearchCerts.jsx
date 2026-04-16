@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import apiService from '../services/apiService.js';
 import pageStateStore from '../store/pageStateStore.js';
+import edrpouCache from '../store/edrpouCache.js';
 
 // ── Column defaults (defined outside component so the reference is stable) ───
 const DEFAULT_COLUMN_SETTINGS = {
@@ -112,11 +113,19 @@ export default function SearchCerts() {
     if (target) {
       setSearch(target);
       (async () => {
+        // Use shared cache if available
+        if (edrpouCache.hasCerts(target)) {
+          const cached = edrpouCache.getCerts(target);
+          setData(cached);
+          pageStateStore.set('certs', { search: target, data: cached, filters, columnSettings, sortConfig, showFilters });
+          return;
+        }
         setLoading(true);
         setError('');
         try {
           const result = await apiService.searchCerts(target);
           const list = Array.isArray(result) ? result : [];
+          edrpouCache.setCerts(target, list);
           setData(list);
           pageStateStore.set('certs', { search: target, data: list, filters, columnSettings, sortConfig, showFilters });
         } catch (err) {
@@ -158,6 +167,7 @@ export default function SearchCerts() {
     try {
       const result = await apiService.searchCerts(search.trim());
       const list = Array.isArray(result) ? result : [];
+      edrpouCache.setCerts(search.trim(), list);
       setData(list);
       pageStateStore.set('certs', { search: search.trim(), data: list, filters, columnSettings, sortConfig, showFilters });
     } catch (error) {

@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import apiService from '../services/apiService.js';
 import UspacyTab from './UspacyTab.jsx';
 import pageStateStore from '../store/pageStateStore.js';
+import edrpouCache from '../store/edrpouCache.js';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const BRAND   = '#32C48D';
@@ -439,17 +440,26 @@ export default function SearchAggregate() {
   }, []);
 
   const doSearch = async (edrpou) => {
+    const key = edrpou.trim();
     setLoading(true);
     setError('');
     setLicenses(null);
     setCerts(null);
     setCrmCompanyId(null);
 
-    // Run all three requests in parallel — Uspacy lookup is best-effort
+    // Reuse cached results when available — only fetch what's missing
+    const cachedMedoc  = edrpouCache.hasMedoc(key)  ? edrpouCache.getMedoc(key)  : undefined;
+    const cachedCerts  = edrpouCache.hasCerts(key)  ? edrpouCache.getCerts(key)  : undefined;
+    const cachedCrmId  = edrpouCache.hasCrmId(key)  ? edrpouCache.getCrmId(key)  : undefined;
+
+    const needMedoc = cachedMedoc  === undefined;
+    const needCerts = cachedCerts  === undefined;
+    const needCrmId = cachedCrmId  === undefined;
+
     const [licR, certR, crmR] = await Promise.allSettled([
-      apiService.searchMedoc(edrpou.trim()),
-      apiService.searchCerts(edrpou.trim()),
-      apiService.getUspacyCompanyId(edrpou.trim()),
+      needMedoc  ? apiService.searchMedoc(key)         : Promise.resolve(cachedMedoc),
+      needCerts  ? apiService.searchCerts(key)         : Promise.resolve(cachedCerts),
+      needCrmId  ? apiService.getUspacyCompanyId(key)  : Promise.resolve({ companyId: cachedCrmId }),
     ]);
 
     const licData  = licR.status === 'fulfilled'
@@ -462,6 +472,11 @@ export default function SearchAggregate() {
       ? (crmR.value?.companyId ?? null)
       : null;
 
+    // Populate shared cache for any data that was freshly fetched
+    if (needMedoc  && licR.status  === 'fulfilled') edrpouCache.setMedoc(key, licData);
+    if (needCerts  && certR.status === 'fulfilled') edrpouCache.setCerts(key, certData);
+    if (needCrmId  && crmR.status  === 'fulfilled') edrpouCache.setCrmId(key, companyId);
+
     setLicenses(licData);
     setCerts(certData);
     setCrmCompanyId(companyId);
@@ -470,14 +485,14 @@ export default function SearchAggregate() {
       setError('Помилка завантаження даних. Перевірте ЄДРПОУ.');
     }
 
-    setSearched(edrpou.trim());
-    localStorage.setItem('hive_last_edrpou', edrpou.trim());
-    setSearchParams({ q: edrpou.trim() }, { replace: true });
+    setSearched(key);
+    localStorage.setItem('hive_last_edrpou', key);
+    setSearchParams({ q: key }, { replace: true });
     pageStateStore.set('aggregate', {
-      search:      edrpou.trim(),
-      searched:    edrpou.trim(),
-      licenses:    licData,
-      certs:       certData,
+      search:       key,
+      searched:     key,
+      licenses:     licData,
+      certs:        certData,
       crmCompanyId: companyId,
     });
     setLoading(false);

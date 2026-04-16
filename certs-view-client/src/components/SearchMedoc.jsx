@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import apiService from '../services/apiService.js';
 import pageStateStore from '../store/pageStateStore.js';
+import edrpouCache from '../store/edrpouCache.js';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const BRAND   = '#32C48D';
@@ -215,24 +216,32 @@ export default function SearchMedoc() {
   }, []);
 
   const doSearch = async (edrpou) => {
+    const key = edrpou.trim();
     setLoading(true);
     setError('');
     try {
-      const result = await apiService.searchMedoc(edrpou.trim());
-      const list = Array.isArray(result) ? result : [];
+      // Use shared cache if available
+      const list = edrpouCache.hasMedoc(key)
+        ? edrpouCache.getMedoc(key)
+        : await apiService.searchMedoc(key).then(r => {
+            const l = Array.isArray(r) ? r : [];
+            edrpouCache.setMedoc(key, l);
+            return l;
+          });
+
       // Set default tab to first available type
       const firstType = list.length > 0 ? list[0].lic_type : '';
       const tabParam   = searchParams.get('tab');
       const validTab = list.some(l => l.lic_type === tabParam) ? tabParam : firstType;
 
       setData(list);
-      setSearched(edrpou.trim());
+      setSearched(key);
       setActiveTab(validTab);
-      localStorage.setItem('hive_last_edrpou', edrpou.trim());
-      setSearchParams({ q: edrpou.trim(), ...(validTab ? { tab: validTab } : {}) }, { replace: true });
+      localStorage.setItem('hive_last_edrpou', key);
+      setSearchParams({ q: key, ...(validTab ? { tab: validTab } : {}) }, { replace: true });
       pageStateStore.set('medoc', {
-        search:    edrpou.trim(),
-        searched:  edrpou.trim(),
+        search:    key,
+        searched:  key,
         data:      list,
         activeTab: validTab,
       });
