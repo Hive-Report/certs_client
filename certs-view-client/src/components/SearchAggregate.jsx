@@ -443,7 +443,7 @@ export default function SearchAggregate() {
   const [loading,     setLoading]     = useState(false);
   const [error,       setError]       = useState('');
   const [searched,    setSearched]    = useState(_saved?.searched ?? '');
-  const [crmOpen,      setCrmOpen]      = useState(true);
+  const [crmOpen,      setCrmOpen]      = useState(false);
   const [crmMounted,   setCrmMounted]   = useState(true);
   const [crmSearching, setCrmSearching] = useState(false);
   const [crmCompanyId, setCrmCompanyId] = useState(_saved?.crmCompanyId ?? null); // Uspacy company ID
