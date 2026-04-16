@@ -384,6 +384,7 @@ export default function SearchAggregate() {
   const [crmOpen,      setCrmOpen]      = useState(false);
   const [crmMounted,   setCrmMounted]   = useState(false); // lazy-mount: render only after first open
   const [crmSearching, setCrmSearching] = useState(false);
+  const [crmCompanyId, setCrmCompanyId] = useState(_saved?.crmCompanyId ?? null); // Uspacy company ID
 
   useEffect(() => {
     const q = searchParams.get('q');
@@ -398,10 +399,13 @@ export default function SearchAggregate() {
     setError('');
     setLicenses(null);
     setCerts(null);
+    setCrmCompanyId(null);
 
-    const [licR, certR] = await Promise.allSettled([
+    // Run all three requests in parallel — Uspacy lookup is best-effort
+    const [licR, certR, crmR] = await Promise.allSettled([
       apiService.searchMedoc(edrpou.trim()),
       apiService.searchCerts(edrpou.trim()),
+      apiService.getUspacyCompanyId(edrpou.trim()),
     ]);
 
     const licData  = licR.status === 'fulfilled'
@@ -410,9 +414,13 @@ export default function SearchAggregate() {
     const certData = certR.status === 'fulfilled'
       ? (() => { const d = certR.value; return Array.isArray(d) ? d : (d?.data ?? []); })()
       : [];
+    const companyId = crmR.status === 'fulfilled'
+      ? (crmR.value?.companyId ?? null)
+      : null;
 
     setLicenses(licData);
     setCerts(certData);
+    setCrmCompanyId(companyId);
 
     if (licR.status === 'rejected' && certR.status === 'rejected') {
       setError('Помилка завантаження даних. Перевірте ЄДРПОУ.');
@@ -422,10 +430,11 @@ export default function SearchAggregate() {
     localStorage.setItem('hive_last_edrpou', edrpou.trim());
     setSearchParams({ q: edrpou.trim() }, { replace: true });
     pageStateStore.set('aggregate', {
-      search:   edrpou.trim(),
-      searched: edrpou.trim(),
-      licenses: licData,
-      certs:    certData,
+      search:      edrpou.trim(),
+      searched:    edrpou.trim(),
+      licenses:    licData,
+      certs:       certData,
+      crmCompanyId: companyId,
     });
     setLoading(false);
   };
@@ -592,7 +601,7 @@ export default function SearchAggregate() {
                to hide/show so the iframe is never destroyed on collapse. */}
           {crmMounted && (
             <div style={{ display: crmOpen ? 'block' : 'none' }}>
-              <UspacyTab edrpou={searched} />
+              <UspacyTab companyId={crmCompanyId} />
             </div>
           )}
         </div>
