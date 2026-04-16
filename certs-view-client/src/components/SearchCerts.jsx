@@ -3,6 +3,40 @@ import { useSearchParams } from 'react-router-dom';
 import apiService from '../services/apiService.js';
 import pageStateStore from '../store/pageStateStore.js';
 
+// ── Column defaults (defined outside component so the reference is stable) ───
+const DEFAULT_COLUMN_SETTINGS = {
+  serial:       { visible: true,  width: 350 },
+  name:         { visible: true,  width: 250 },
+  ipn:          { visible: true,  width: 120 },
+  admin_reg:    { visible: true,  width: 220 },
+  email:        { visible: true,  width: 200 },
+  phone:        { visible: true,  width: 140 },
+  address:      { visible: false, width: 280 },
+  start_date:   { visible: true,  width: 150 },
+  end_date:     { visible: true,  width: 150 },
+  type:         { visible: true,  width: 120 },
+  storage_type: { visible: true,  width: 150 },
+  crypt:        { visible: true,  width: 120 },
+  status:       { visible: true,  width: 100 },
+};
+
+/**
+ * Merge saved column settings with defaults.
+ * Any key present in DEFAULT_COLUMN_SETTINGS but missing from `saved`
+ * (e.g. a newly added column) falls back to its default value.
+ * This prevents "Cannot read properties of undefined (reading 'visible')" crashes.
+ */
+function mergeColumnSettings(saved) {
+  if (!saved) return DEFAULT_COLUMN_SETTINGS;
+  return Object.fromEntries(
+    Object.entries(DEFAULT_COLUMN_SETTINGS).map(([key, def]) => [
+      key, saved[key] ?? def,
+    ])
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 export default function SearchCerts() {
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -10,32 +44,17 @@ export default function SearchCerts() {
   const _saved = pageStateStore.get('certs');
   const _urlQ  = searchParams.get('q');
 
+  // Read localStorage once as a cold-start fallback (used only when no session state)
+  const _lsSettings = (() => {
+    try { return JSON.parse(localStorage.getItem('searchCerts_settings') || 'null'); }
+    catch { return null; }
+  })();
+
   const [search, setSearch] = useState(_urlQ || _saved?.search || localStorage.getItem('hive_last_edrpou') || '');
   const [data,   setData]   = useState(_saved?.data ?? []);
   const [loading, setLoading] = useState(false);
   const [error,   setError]   = useState('');
   const [copiedCell, setCopiedCell] = useState(null);
-  const DEFAULT_COLUMN_SETTINGS = {
-    serial:       { visible: true,  width: 350 },
-    name:         { visible: true,  width: 250 },
-    ipn:          { visible: true,  width: 120 },
-    admin_reg:    { visible: true,  width: 220 },
-    email:        { visible: true,  width: 200 },
-    phone:        { visible: true,  width: 140 },
-    address:      { visible: false, width: 280 },
-    start_date:   { visible: true,  width: 150 },
-    end_date:     { visible: true,  width: 150 },
-    type:         { visible: true,  width: 120 },
-    storage_type: { visible: true,  width: 150 },
-    crypt:        { visible: true,  width: 120 },
-    status:       { visible: true,  width: 100 },
-  };
-
-  // Helper: read localStorage settings once (used only as cold-start fallback)
-  const _lsSettings = (() => {
-    try { return JSON.parse(localStorage.getItem('searchCerts_settings') || 'null'); }
-    catch { return null; }
-  })();
 
   const [sortConfig, setSortConfig] = useState(
     _saved?.sortConfig
@@ -56,8 +75,9 @@ export default function SearchCerts() {
       end_date_to:     searchParams.get('end_date_to')     || '',
     }
   );
+  // Always merge with defaults → safe even if saved value has fewer keys
   const [columnSettings, setColumnSettings] = useState(
-    _saved?.columnSettings ?? _lsSettings?.columnSettings ?? DEFAULT_COLUMN_SETTINGS
+    mergeColumnSettings(_saved?.columnSettings ?? _lsSettings?.columnSettings)
   );
   const [showColumnSettings, setShowColumnSettings] = useState(false);
   const [showFilters, setShowFilters] = useState(
@@ -237,21 +257,7 @@ export default function SearchCerts() {
   };
 
   const resetColumnSettings = () => {
-    setColumnSettings({
-      serial:       { visible: true,  width: 350 },
-      name:         { visible: true,  width: 250 },
-      ipn:          { visible: true,  width: 120 },
-      admin_reg:    { visible: true,  width: 220 },
-      email:        { visible: true,  width: 200 },
-      phone:        { visible: true,  width: 140 },
-      address:      { visible: false, width: 280 },
-      start_date:   { visible: true,  width: 150 },
-      end_date:     { visible: true,  width: 150 },
-      type:         { visible: true,  width: 120 },
-      storage_type: { visible: true,  width: 150 },
-      crypt:        { visible: true,  width: 120 },
-      status:       { visible: true,  width: 100 },
-    });
+    setColumnSettings({ ...DEFAULT_COLUMN_SETTINGS });
   };
 
   const setQuickFilter = (type) => {
