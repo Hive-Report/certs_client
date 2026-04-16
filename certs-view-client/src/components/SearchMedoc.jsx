@@ -201,6 +201,7 @@ export default function SearchMedoc() {
 
   const [search,    setSearch]    = useState(_urlQ || _saved?.search || localStorage.getItem('hive_last_edrpou') || '');
   const [data,      setData]      = useState(_saved?.data     ?? []);
+  const [dealer,    setDealer]    = useState(_saved?.dealer   ?? null);
   const [loading,   setLoading]   = useState(false);
   const [error,     setError]     = useState('');
   const [searched,  setSearched]  = useState(_saved?.searched ?? '');
@@ -229,12 +230,22 @@ export default function SearchMedoc() {
             return l;
           });
 
+      // Dealer — best-effort, from cache or fresh fetch
+      const dealerName = edrpouCache.hasDealer(key)
+        ? edrpouCache.getDealer(key)
+        : await apiService.getMedocDealer(key).then(r => {
+            const d = r?.dealer ?? null;
+            edrpouCache.setDealer(key, d);
+            return d;
+          }).catch(() => null);
+
       // Set default tab to first available type
       const firstType = list.length > 0 ? list[0].lic_type : '';
       const tabParam   = searchParams.get('tab');
       const validTab = list.some(l => l.lic_type === tabParam) ? tabParam : firstType;
 
       setData(list);
+      setDealer(dealerName);
       setSearched(key);
       setActiveTab(validTab);
       localStorage.setItem('hive_last_edrpou', key);
@@ -243,6 +254,7 @@ export default function SearchMedoc() {
         search:    key,
         searched:  key,
         data:      list,
+        dealer:    dealerName,
         activeTab: validTab,
       });
     } catch (err) {
@@ -274,6 +286,25 @@ export default function SearchMedoc() {
   }, [data]);
 
   const activeGroup = typeGroups.find(g => g.type === activeTab) || typeGroups[0];
+
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    const lines = typeGroups.map(({ name, licenses: lics }, idx) => {
+      const forms_set = extractFormsSet(lics);
+      const { active, lapsed } = aggregateModules(lics);
+      const modules = [...active, ...lapsed].filter(m => m.end_date);
+      const header = (idx === 0 && dealer)
+        ? `Дилер: ${dealer} ${name}${forms_set ? ` (${forms_set})` : ''}`
+        : `${name}${forms_set ? ` (${forms_set})` : ''}`;
+      const modulesText = modules.map(m => `- ${m.name_module}: ${formatDate(m.end_date)}`).join('\n');
+      return `${header}${modulesText ? `\n${modulesText}` : ''}`;
+    });
+    navigator.clipboard.writeText(lines.join('\n')).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }).catch(() => {});
+  };
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: PAGE_BG }}>
@@ -334,9 +365,32 @@ export default function SearchMedoc() {
           <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #e5e7eb', overflow: 'hidden', boxShadow: '0 1px 4px rgba(0,0,0,0.07)' }}>
 
             {/* ЄДРПОУ header */}
-            <div style={{ padding: '14px 24px', borderBottom: '1px solid #e5e7eb', backgroundColor: '#f9fafb', textAlign: 'center' }}>
-              <span style={{ fontSize: 13, color: '#6b7280' }}>ЄДРПОУ: </span>
-              <span style={{ fontSize: 18, fontWeight: 700, color: '#111827' }}>{searched}</span>
+            <div style={{ padding: '12px 24px', borderBottom: '1px solid #e5e7eb', backgroundColor: '#f9fafb', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12 }}>
+                <span style={{ fontSize: 13, color: '#6b7280' }}>
+                  ЄДРПОУ: <span style={{ fontSize: 18, fontWeight: 700, color: '#111827' }}>{searched}</span>
+                </span>
+                {dealer && (
+                  <>
+                    <span style={{ color: '#d1d5db' }}>|</span>
+                    <span style={{ fontSize: 13, color: '#6b7280' }}>
+                      Дилер: <span style={{ fontWeight: 500, color: '#374151' }}>{dealer}</span>
+                    </span>
+                  </>
+                )}
+              </div>
+              <button
+                onClick={handleCopy}
+                style={{
+                  backgroundColor: 'transparent', border: '1px solid #d1d5db', color: copied ? '#1a7a56' : '#374151',
+                  borderRadius: 6, padding: '4px 12px', fontSize: 12, fontWeight: 500,
+                  cursor: 'pointer', whiteSpace: 'nowrap', transition: 'color 0.15s, border-color 0.15s',
+                  ...(copied ? { borderColor: '#1a7a56' } : {}),
+                }}
+                title="Копіювати інформацію про ліцензії"
+              >
+                {copied ? '✓ Скопійовано' : '📋 Копіювати'}
+              </button>
             </div>
 
             {/* Type selector */}

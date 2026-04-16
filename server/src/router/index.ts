@@ -18,6 +18,7 @@ router.post('/auth/google', googleAuth);
 
 router.get('/certs/:edrpou',        combinedAuthMiddleware, (req: Request, res: Response) => certsController.getCerts(req, res));
 router.get('/medoc/:edrpou',        combinedAuthMiddleware, (req: Request, res: Response) => medocController.getLicenses(req, res));
+router.get('/medoc/:edrpou/dealer', combinedAuthMiddleware, (req: Request, res: Response) => medocController.getDealer(req, res));
 router.get('/cert-payments',        combinedAuthMiddleware, (req: Request, res: Response) => certPaymentController.searchPayments(req, res));
 router.get('/uspacy/company-id',    combinedAuthMiddleware, (req: Request, res: Response) => uspacyController.getCompanyId(req, res));
 

@@ -15,7 +15,8 @@ const config = {
       SEARCH: '/api/certs'
     },
     MEDOC: {
-      SEARCH: '/api/medoc'
+      SEARCH: '/api/medoc',
+      DEALER: '/api/medoc',
     },
     CERT_PAYMENTS: {
       SEARCH: '/api/cert-payments'
