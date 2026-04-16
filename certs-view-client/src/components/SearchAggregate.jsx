@@ -578,7 +578,7 @@ export default function SearchAggregate() {
               <span style={{
                 fontSize: '1rem', color: '#6b7280',
                 display: 'inline-block',
-                transform: crmOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                transform: crmOpen ? 'rotate(0deg)' : 'rotate(180deg)',
                 transition: 'transform 0.2s',
               }}>▼</span>
             </div>
