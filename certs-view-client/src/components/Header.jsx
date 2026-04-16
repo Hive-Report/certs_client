@@ -73,6 +73,9 @@ const Header = ({ username, avatarUrl, onLogout }) => {
             <NavLink to="/cert-payments" style={navLinkStyle}>
               💳 Оплати КЕП
             </NavLink>
+            <NavLink to="/bulk" style={navLinkStyle}>
+              📋 Масовий пошук
+            </NavLink>
           </nav>
         </div>
 
