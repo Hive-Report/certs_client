@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import apiService from '../services/apiService.js';
+import pageStateStore from '../store/pageStateStore.js';
 
 const BRAND   = '#32C48D';
 const PAGE_BG = '#f4f6f9';
@@ -106,23 +107,29 @@ function DateInput({ label, value, onChange, onEnter }) {
 export default function SearchCertPayment() {
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const [dateStart,   setDateStart]   = useState(searchParams.get('ds')   || firstOfMonthDmy());
-  const [dateEnd,     setDateEnd]     = useState(searchParams.get('de')   || todayDmy());
-  const [edrpou,      setEdrpou]      = useState(searchParams.get('e')    || localStorage.getItem('hive_last_edrpou') || '');
-  const [naznachenie, setNaznachenie] = useState(searchParams.get('nazn') || '');
+  // ── Restore from session store if available ───────────────────────────────
+  const _saved = pageStateStore.get('certPayments');
 
-  const [payments,  setPayments]  = useState(null);
-  const [summary,   setSummary]   = useState(null);
-  const [loading,   setLoading]   = useState(false);
-  const [error,     setError]     = useState('');
+  const [dateStart,   setDateStart]   = useState(_saved?.dateStart   || searchParams.get('ds') || firstOfMonthDmy());
+  const [dateEnd,     setDateEnd]     = useState(_saved?.dateEnd     || searchParams.get('de') || todayDmy());
+  const [edrpou,      setEdrpou]      = useState(_saved?.edrpou      || searchParams.get('e')  || '');
+  const [naznachenie, setNaznachenie] = useState(_saved?.naznachenie || searchParams.get('nazn') || '');
 
-  // Auto-search on mount if params are in URL
+  const [payments,    setPayments]    = useState(_saved?.payments  ?? null);
+  const [summary,     setSummary]     = useState(_saved?.summary   ?? null);
+  const [loading,     setLoading]     = useState(false);
+  const [error,       setError]       = useState('');
+  const [cachedAt,    setCachedAt]    = useState(_saved?.cachedAt  ?? null);
+  const [fromCache,   setFromCache]   = useState(_saved?.fromCache ?? false);
+
+  // Restore from store on mount — skip auto-search if we have stored results
   useEffect(() => {
-    if (searchParams.get('ds')) doSearch();
+    if (_saved?.payments) return;  // already restored above
+    if (searchParams.get('ds')) doSearch(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const doSearch = async () => {
+  const doSearch = async (refresh = false) => {
     if (!isValidDmy(dateStart) || !isValidDmy(dateEnd)) {
       setError('Введіть дати у форматі ДД.ММ.РРРР');
       return;
@@ -131,12 +138,14 @@ export default function SearchCertPayment() {
     setError('');
     setPayments(null);
     setSummary(null);
+    setFromCache(false);
 
     const params = new URLSearchParams({
       dateStart,
       dateEnd,
       ...(edrpou      ? { edrpou }      : {}),
       ...(naznachenie ? { naznachenie } : {}),
+      ...(refresh     ? { refresh: '1' } : {}),
     });
 
     if (edrpou.trim()) localStorage.setItem('hive_last_edrpou', edrpou.trim());
@@ -147,9 +156,24 @@ export default function SearchCertPayment() {
     }, { replace: true });
 
     try {
+      const fetchStart = Date.now();
       const result = await apiService.searchCertPayments(params.toString());
-      setPayments(result.payments ?? []);
-      setSummary(result.summary ?? null);
+      const elapsed  = Date.now() - fetchStart;
+      const payList  = result.payments ?? [];
+      const sumData  = result.summary ?? null;
+      const fetchedAt = new Date();
+      const isCached  = !refresh && elapsed < 300;
+
+      setPayments(payList);
+      setSummary(sumData);
+      setCachedAt(fetchedAt);
+      setFromCache(isCached);
+
+      pageStateStore.set('certPayments', {
+        dateStart, dateEnd, edrpou, naznachenie,
+        payments: payList, summary: sumData,
+        cachedAt: fetchedAt, fromCache: isCached,
+      });
     } catch (err) {
       setError(err.message || 'Помилка запиту');
     } finally {
@@ -206,7 +230,7 @@ export default function SearchCertPayment() {
 
             {/* Search button */}
             <button
-              onClick={doSearch}
+              onClick={() => doSearch(false)}
               disabled={loading}
               style={{
                 backgroundColor: BRAND, color: '#fff', border: 'none',
@@ -219,6 +243,22 @@ export default function SearchCertPayment() {
                 ? <><span className="spinner-border spinner-border-sm me-1" />Завантаження...</>
                 : '🔍 Шукати'}
             </button>
+
+            {/* Refresh (bypass cache) button — shown only when results are loaded */}
+            {payments !== null && !loading && (
+              <button
+                onClick={() => doSearch(true)}
+                title="Ігнорувати кеш і завантажити свіжі дані"
+                style={{
+                  backgroundColor: '#fff', color: '#6b7280',
+                  border: '1px solid #d1d5db', borderRadius: 6,
+                  padding: '8px 14px', fontWeight: 500, fontSize: 13,
+                  cursor: 'pointer', whiteSpace: 'nowrap',
+                }}
+              >
+                🔄 Оновити
+              </button>
+            )}
           </div>
 
           {error && <div className="alert alert-danger mt-3 mb-0">{error}</div>}
@@ -247,7 +287,7 @@ export default function SearchCertPayment() {
 
             {/* Summary bar */}
             {summary && (
-              <div style={{ padding: '12px 18px', backgroundColor: '#f9fafb', borderBottom: '1px solid #e5e7eb', display: 'flex', gap: 24, flexWrap: 'wrap' }}>
+              <div style={{ padding: '12px 18px', backgroundColor: '#f9fafb', borderBottom: '1px solid #e5e7eb', display: 'flex', gap: 24, flexWrap: 'wrap', alignItems: 'center' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <span style={{ fontSize: 15, fontWeight: 700, color: '#1a7a56' }}>{summary.count}</span>
                   <span style={{ fontSize: 12, color: '#6b7280' }}>записів</span>
@@ -256,6 +296,21 @@ export default function SearchCertPayment() {
                   <span style={{ fontSize: 15, fontWeight: 700, color: '#111827' }}>{summary.total_sum}</span>
                   <span style={{ fontSize: 12, color: '#6b7280' }}>грн загальна сума</span>
                 </div>
+                {/* Cache indicator */}
+                {cachedAt && (
+                  <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 5 }}>
+                    <span style={{
+                      fontSize: 11, padding: '2px 8px', borderRadius: 10, fontWeight: 500,
+                      backgroundColor: fromCache ? '#fef9c3' : '#dcfce7',
+                      color:           fromCache ? '#854d0e' : '#166534',
+                    }}>
+                      {fromCache ? '⚡ з кешу' : '🔄 свіжі дані'}
+                    </span>
+                    <span style={{ fontSize: 11, color: '#9ca3af' }}>
+                      {cachedAt.toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                    </span>
+                  </div>
+                )}
               </div>
             )}
 

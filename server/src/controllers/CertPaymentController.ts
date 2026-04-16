@@ -12,7 +12,11 @@ export class CertPaymentController {
   }
 
   async searchPayments(req: Request, res: Response): Promise<void> {
-    const { dateStart, dateEnd, edrpou, naznachenie, updateDateStart, updateDateEnd, certDateStart, certDateEnd } = req.query as Record<string, string>;
+    const {
+      dateStart, dateEnd, edrpou, naznachenie,
+      updateDateStart, updateDateEnd, certDateStart, certDateEnd,
+      refresh,
+    } = req.query as Record<string, string>;
 
     if (!dateStart || !dateEnd) {
       res.status(400).json({ error: 'dateStart та dateEnd є обовʼязковими параметрами' });
@@ -20,7 +24,7 @@ export class CertPaymentController {
     }
 
     try {
-      this.logger.info(`Payment search: ${dateStart} – ${dateEnd}, edrpou=${edrpou ?? ''}, nazn=${naznachenie ?? ''}`);
+      this.logger.info(`Payment search: ${dateStart} – ${dateEnd}, edrpou=${edrpou ?? ''}, nazn=${naznachenie ?? ''}, refresh=${refresh === '1'}`);
       const result = await this.service.searchPayments({
         dateStart,
         dateEnd,
@@ -30,6 +34,7 @@ export class CertPaymentController {
         updateDateEnd,
         certDateStart,
         certDateEnd,
+        refresh: refresh === '1',
       });
       res.json(result);
     } catch (err: unknown) {

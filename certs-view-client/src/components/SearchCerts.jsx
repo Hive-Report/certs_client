@@ -1,32 +1,21 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import apiService from '../services/apiService.js';
+import pageStateStore from '../store/pageStateStore.js';
 
 export default function SearchCerts() {
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const [search, setSearch] = useState(searchParams.get('q') || localStorage.getItem('hive_last_edrpou') || '');
-  const [data, setData] = useState([]);
+  // ── Restore from session store if available ───────────────────────────────
+  const _saved = pageStateStore.get('certs');
+  const _urlQ  = searchParams.get('q');
+
+  const [search, setSearch] = useState(_urlQ || _saved?.search || localStorage.getItem('hive_last_edrpou') || '');
+  const [data,   setData]   = useState(_saved?.data ?? []);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error,   setError]   = useState('');
   const [copiedCell, setCopiedCell] = useState(null);
-  const [sortConfig, setSortConfig] = useState({
-    key: searchParams.get('sort') || null,
-    direction: searchParams.get('dir') || 'asc',
-  });
-  const [filters, setFilters] = useState({
-    name:            searchParams.get('name')            || '',
-    email:           searchParams.get('email')           || '',
-    type:            searchParams.get('type')            || '',
-    status:          searchParams.get('status')          || '',
-    storage_type:    searchParams.get('storage_type')    || '',
-    crypt:           searchParams.get('crypt')           || '',
-    start_date_from: searchParams.get('start_date_from') || '',
-    start_date_to:   searchParams.get('start_date_to')   || '',
-    end_date_from:   searchParams.get('end_date_from')   || '',
-    end_date_to:     searchParams.get('end_date_to')     || '',
-  });
-  const [columnSettings, setColumnSettings] = useState({
+  const DEFAULT_COLUMN_SETTINGS = {
     serial:       { visible: true,  width: 350 },
     name:         { visible: true,  width: 250 },
     ipn:          { visible: true,  width: 120 },
@@ -40,34 +29,45 @@ export default function SearchCerts() {
     storage_type: { visible: true,  width: 150 },
     crypt:        { visible: true,  width: 120 },
     status:       { visible: true,  width: 100 },
-  });
+  };
+
+  // Helper: read localStorage settings once (used only as cold-start fallback)
+  const _lsSettings = (() => {
+    try { return JSON.parse(localStorage.getItem('searchCerts_settings') || 'null'); }
+    catch { return null; }
+  })();
+
+  const [sortConfig, setSortConfig] = useState(
+    _saved?.sortConfig
+    ?? _lsSettings?.sortConfig
+    ?? { key: searchParams.get('sort') || null, direction: searchParams.get('dir') || 'asc' }
+  );
+  const [filters, setFilters] = useState(
+    _saved?.filters ?? {
+      name:            searchParams.get('name')            || '',
+      email:           searchParams.get('email')           || '',
+      type:            searchParams.get('type')            || '',
+      status:          searchParams.get('status')          || '',
+      storage_type:    searchParams.get('storage_type')    || '',
+      crypt:           searchParams.get('crypt')           || '',
+      start_date_from: searchParams.get('start_date_from') || '',
+      start_date_to:   searchParams.get('start_date_to')   || '',
+      end_date_from:   searchParams.get('end_date_from')   || '',
+      end_date_to:     searchParams.get('end_date_to')     || '',
+    }
+  );
+  const [columnSettings, setColumnSettings] = useState(
+    _saved?.columnSettings ?? _lsSettings?.columnSettings ?? DEFAULT_COLUMN_SETTINGS
+  );
   const [showColumnSettings, setShowColumnSettings] = useState(false);
-  const [showFilters, setShowFilters] = useState(false);
+  const [showFilters, setShowFilters] = useState(
+    _saved?.showFilters ?? _lsSettings?.showFilters ?? false
+  );
   const [isFiltersActive, setIsFiltersActive] = useState(false);
 
-  // Завантаження налаштувань з localStorage
+  // Persist settings to localStorage on every change (survives hard reload)
   useEffect(() => {
-    const savedSettings = localStorage.getItem('searchCerts_settings');
-    if (savedSettings) {
-      try {
-        const parsed = JSON.parse(savedSettings);
-        if (parsed.columnSettings) setColumnSettings(parsed.columnSettings);
-        if (parsed.sortConfig) setSortConfig(parsed.sortConfig);
-        if (parsed.showFilters !== undefined) setShowFilters(parsed.showFilters);
-      } catch (e) {
-        console.error('Помилка завантаження налаштувань:', e);
-      }
-    }
-  }, []);
-
-  // Збереження налаштувань в localStorage
-  useEffect(() => {
-    const settings = {
-      columnSettings,
-      sortConfig,
-      showFilters
-    };
-    localStorage.setItem('searchCerts_settings', JSON.stringify(settings));
+    localStorage.setItem('searchCerts_settings', JSON.stringify({ columnSettings, sortConfig, showFilters }));
   }, [columnSettings, sortConfig, showFilters]);
 
   // Перевірка активності фільтрів
@@ -76,9 +76,18 @@ export default function SearchCerts() {
     setIsFiltersActive(hasActiveFilters);
   }, [filters]);
 
-  // Auto-search on mount if q param present
+  // Save full UI state to session store whenever anything relevant changes
+  useEffect(() => {
+    if (data.length > 0) {
+      pageStateStore.set('certs', { search, data, filters, columnSettings, sortConfig, showFilters });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters, columnSettings, sortConfig, showFilters]);
+
+  // Auto-search on mount if q param present — skip if store has matching results
   useEffect(() => {
     const q = searchParams.get('q');
+    if (_saved?.search && (!q || _saved.search === q)) return;
     if (q) {
       setSearch(q);
       (async () => {
@@ -86,7 +95,9 @@ export default function SearchCerts() {
         setError('');
         try {
           const result = await apiService.searchCerts(q);
-          setData(Array.isArray(result) ? result : []);
+          const list = Array.isArray(result) ? result : [];
+          setData(list);
+          pageStateStore.set('certs', { search: q, data: list, filters, columnSettings, sortConfig, showFilters });
         } catch (err) {
           setError(err.message || 'Помилка при завантаженні даних');
           setData([]);
@@ -125,7 +136,9 @@ export default function SearchCerts() {
 
     try {
       const result = await apiService.searchCerts(search.trim());
-      setData(Array.isArray(result) ? result : []);
+      const list = Array.isArray(result) ? result : [];
+      setData(list);
+      pageStateStore.set('certs', { search: search.trim(), data: list, filters, columnSettings, sortConfig, showFilters });
     } catch (error) {
       console.error('Помилка:', error);
       if (error.message.includes('401')) {
