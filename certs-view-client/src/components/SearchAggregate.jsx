@@ -381,7 +381,8 @@ export default function SearchAggregate() {
   const [loading,     setLoading]     = useState(false);
   const [error,       setError]       = useState('');
   const [searched,    setSearched]    = useState(_saved?.searched ?? '');
-  const [crmOpen,     setCrmOpen]     = useState(false);
+  const [crmOpen,      setCrmOpen]      = useState(false);
+  const [crmMounted,   setCrmMounted]   = useState(false); // lazy-mount: render only after first open
   const [crmSearching, setCrmSearching] = useState(false);
 
   useEffect(() => {
@@ -439,6 +440,7 @@ export default function SearchAggregate() {
     setCrmSearching(true);
     // Open CRM panel
     setCrmOpen(true);
+    setCrmMounted(true);
     // Trigger iframe reload by toggling state
     setTimeout(() => setCrmSearching(false), 500);
   };
@@ -549,7 +551,7 @@ export default function SearchAggregate() {
             borderBottom: crmOpen ? '1px solid #e5e7eb' : 'none',
             cursor: 'pointer',
           }}
-            onClick={() => setCrmOpen(!crmOpen)}
+            onClick={() => { setCrmOpen(o => !o); setCrmMounted(true); }}
             onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#fff'}
           >
@@ -584,8 +586,15 @@ export default function SearchAggregate() {
             </div>
           </div>
 
-          {/* Content - full width iframe */}
-          {crmOpen && <UspacyTab edrpou={searched} />}
+          {/* Content - full width iframe.
+               Lazy-mount: render only after the panel has been opened at
+               least once (crmMounted).  After that, use display:none/block
+               to hide/show so the iframe is never destroyed on collapse. */}
+          {crmMounted && (
+            <div style={{ display: crmOpen ? 'block' : 'none' }}>
+              <UspacyTab edrpou={searched} />
+            </div>
+          )}
         </div>
       )}
       </>
