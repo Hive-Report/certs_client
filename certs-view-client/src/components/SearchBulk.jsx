@@ -53,6 +53,14 @@ function parseEdrpous(text) {
   )];
 }
 
+// Normalize module name: replace Latin homoglyphs with Cyrillic equivalents.
+function normModuleName(s) {
+  return s
+    .replace(/(?<=[а-яіїєА-ЯІЇЄ])c/g, '\u0441')
+    .replace(/\s*\((Не платник ПДВ|Платник ПДВ)\)\s*$/i, '')
+    .trim();
+}
+
 // Run tasks with a max concurrency limit
 async function withConcurrency(tasks, limit) {
   const results = new Array(tasks.length);
@@ -120,28 +128,37 @@ export default function SearchBulk() {
         .sort((a, b) => (toIso(b.start_date) || '').localeCompare(toIso(a.start_date) || ''))[0];
       const orgName = sealCert?.name || '';
 
-      // Licenses: dedupe modules, keep latest end_date per module name
-      const moduleMap = new Map();
+      // Licenses: group by lic_type first, then dedupe modules within each type
+      const byLicType = new Map();
       for (const lic of licData) {
+        const key = lic.lic_type ?? 'unknown';
+        if (!byLicType.has(key)) byLicType.set(key, { typeName: lic.lic_type_name || key, mods: new Map() });
+        const entry = byLicType.get(key);
         for (const mod of lic.modules || []) {
-          const prev = moduleMap.get(mod.name_module);
-          if (!prev || (mod.end_date && mod.end_date > prev)) {
-            moduleMap.set(mod.name_module, mod.end_date);
+          const mkey = normModuleName(mod.name_module || '');
+          const prev = entry.mods.get(mkey);
+          if (!prev || (mod.end_date && mod.end_date > (prev.endDate || ''))) {
+            entry.mods.set(mkey, { name: mkey, endDate: mod.end_date });
           }
         }
       }
-      for (const [name, endDate] of moduleMap) {
-        if (!isWithinHorizon(endDate)) continue;
-        allRows.push({
-          edrpou, orgName,
-          type: 'Ліцензія M.E.Doc',
-          item: name,
-          endDate,
-          days: daysLeft(endDate),
-          dealer,
-          certType: null,
-          adminReg: null,
-        });
+      for (const { typeName, mods } of byLicType.values()) {
+        // Remove generic base name when a qualified variant exists
+        for (const { name, endDate } of mods.values()) {
+          if (!isWithinHorizon(endDate)) continue;
+          allRows.push({
+            edrpou, orgName,
+            category: 'license',
+            licTypeName: typeName,
+            type: 'Ліцензія M.E.Doc',
+            item: name,
+            endDate,
+            days: daysLeft(endDate),
+            dealer,
+            certType: null,
+            adminReg: null,
+          });
+        }
       }
 
       // Signing certs
@@ -152,6 +169,8 @@ export default function SearchBulk() {
         allRows.push({
           edrpou,
           orgName: orgName || cert.name || '',
+          category: 'cert',
+          licTypeName: null,
           type: 'Сертифікат КЕП',
           item: cert.name || '—',
           endDate: iso,
@@ -179,6 +198,7 @@ export default function SearchBulk() {
       'ЄДРПОУ':                              r.edrpou,
       'Організація':                          r.orgName,
       'Тип':                                  r.type,
+      'Тип ліцензії':                         r.licTypeName ?? '',
       'Назва модуля / Власник сертифіката':   r.item,
       'Тип сертифіката':                      r.certType ?? '',
       'Дилер / Адм. реєстрації':              r.dealer ?? r.adminReg ?? '',
@@ -188,8 +208,8 @@ export default function SearchBulk() {
 
     const ws = XLSX.utils.json_to_sheet(data);
     ws['!cols'] = [
-      { wch: 14 }, { wch: 42 }, { wch: 22 }, { wch: 52 },
-      { wch: 18 }, { wch: 32 }, { wch: 18 }, { wch: 16 },
+      { wch: 14 }, { wch: 42 }, { wch: 22 }, { wch: 34 },
+      { wch: 52 }, { wch: 18 }, { wch: 32 }, { wch: 18 }, { wch: 16 },
     ];
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Поновлення');
@@ -302,7 +322,8 @@ export default function SearchBulk() {
                   <tr style={{ backgroundColor: '#f9fafb' }}>
                     <th style={TH}>ЄДРПОУ</th>
                     <th style={TH}>Організація</th>
-                    <th style={{ ...TH, width: 150 }}>Тип</th>
+                    <th style={{ ...TH, width: 140 }}>Тип</th>
+                    <th style={{ ...TH, width: 200 }}>Тип ліцензії</th>
                     <th style={TH}>Модуль / Сертифікат</th>
                     <th style={{ ...TH, width: 120 }}>Тип серт.</th>
                     <th style={{ ...TH, width: 200 }}>Дилер / Адм. реєстрації</th>
@@ -334,6 +355,9 @@ export default function SearchBulk() {
                           }}>
                             {row.type}
                           </span>
+                        </td>
+                        <td style={{ ...TD, color: '#374151', maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {row.licTypeName || '—'}
                         </td>
                         <td style={TD}>{row.item}</td>
                         <td style={{ ...TD, color: '#6b7280', whiteSpace: 'nowrap' }}>

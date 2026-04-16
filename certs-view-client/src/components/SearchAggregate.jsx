@@ -57,31 +57,30 @@ function extractFormsSet(licenses) {
   return null;
 }
 
-// ── Aggregate modules for a group (deduped by name, keep latest end_date) ────
-function dedupeModules(licenses) {
-  const map = new Map();
-  for (const lic of licenses) {
-    for (const mod of lic.modules) {
-      const name = mod.name_module || '';
-      const prev = map.get(name);
-      if (!prev || (mod.end_date && mod.end_date > prev)) map.set(name, mod.end_date);
-    }
-  }
-  return Array.from(map.entries()).map(([name, end_date]) => ({ name_module: name, end_date }));
+// Normalize module name: replace Latin homoglyphs with Cyrillic equivalents.
+// E.g. "Звітніcть" (latin c U+0063) → "Звітність" (cyrillic с U+0441)
+function normModuleName(s) {
+  return s
+    .replace(/(?<=[а-яіїєА-ЯІЇЄ])c/g, '\u0441')          // latin c → cyrillic с
+    .replace(/\s*\((Не платник ПДВ|Платник ПДВ)\)\s*$/i, '') // strip VAT qualifier
+    .trim();
 }
 
+// ── Aggregate modules for a group (deduped by name, keep latest end_date) ────
 function aggregateModules(licenses) {
+  // key: normalized name → { name: displayName, end_date }
   const map = new Map();
   for (const lic of licenses) {
     for (const mod of lic.modules) {
-      const name = mod.name_module || '';
-      const prev = map.get(name);
-      if (!prev || (mod.end_date && mod.end_date > prev)) map.set(name, mod.end_date);
+      const key  = normModuleName(mod.name_module || '');
+      const prev = map.get(key);
+      if (!prev || (mod.end_date && mod.end_date > (prev.end_date || ''))) {
+        map.set(key, { name: key, end_date: mod.end_date });
+      }
     }
   }
-  const active = [];
-  const lapsed = [];
-  for (const [name, end_date] of map) {
+  const active = [], lapsed = [];
+  for (const { name, end_date } of map.values()) {
     if (isActive(end_date)) active.push({ name_module: name, end_date });
     else if (end_date)      lapsed.push({ name_module: name, end_date });
   }
@@ -176,12 +175,17 @@ function LicensesSection({ licenses, dealer }) {
     return Array.from(map.values());
   }, [licenses]);
 
-  // Section-level stats: aggregate across ALL types
+  // Section-level stats: aggregate per type to avoid collapsing same-name modules
   const sectionStats = useMemo(() => {
-    const { active, lapsed } = aggregateModules(licenses);
-    const expiringSoon = active.filter(m => isExpiringSoon(m.end_date)).length;
-    return { active: active.length, expiringSoon, lapsed: lapsed.length };
-  }, [licenses]);
+    let activeCount = 0, soonCount = 0, lapsedCount = 0;
+    for (const { list } of byType) {
+      const { active, lapsed } = aggregateModules(list);
+      activeCount += active.length;
+      soonCount  += active.filter(m => isExpiringSoon(m.end_date)).length;
+      lapsedCount += lapsed.length;
+    }
+    return { active: activeCount, expiringSoon: soonCount, lapsed: lapsedCount };
+  }, [byType]);
 
   const [copied, setCopied] = useState(false);
 

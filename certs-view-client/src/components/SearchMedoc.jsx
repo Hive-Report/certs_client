@@ -43,35 +43,37 @@ function extractFormsSet(licenses) {
   return null;
 }
 
+// Normalize module name: replace Latin homoglyphs with Cyrillic equivalents.
+function normModuleName(s) {
+  return s
+    .replace(/(?<=[а-яіїєА-ЯІЇЄ])c/g, '\u0441')
+    .replace(/\s*\((Не платник ПДВ|Платник ПДВ)\)\s*$/i, '')
+    .trim();
+}
+
 // ── Aggregate modules for a type group ───────────────────────────────────────
 function aggregateModules(licenses) {
-  const moduleMap = new Map(); // name → max iso end_date
+  const map = new Map(); // normKey → { name: displayName, end_date }
 
   for (const lic of licenses) {
     for (const mod of lic.modules) {
-      const name = mod.name_module || '';
-      const prev = moduleMap.get(name);
-      if (!prev || (mod.end_date && mod.end_date > prev)) {
-        moduleMap.set(name, mod.end_date);
+        const key  = normModuleName(mod.name_module || '');
+      const prev = map.get(key);
+      if (!prev || (mod.end_date && mod.end_date > (prev.end_date || ''))) {
+        map.set(key, { name: key, end_date: mod.end_date });
       }
     }
   }
 
-  const active   = [];
-  const lapsed   = [];
-
-  for (const [name, end_date] of moduleMap) {
-    if (isActive(end_date)) {
-      active.push({ name_module: name, end_date });
-    } else if (end_date) {
-      lapsed.push({ name_module: name, end_date });
-    }
+  const active = [], lapsed = [];
+  for (const { name, end_date } of map.values()) {
+    if (isActive(end_date)) active.push({ name_module: name, end_date });
+    else if (end_date)      lapsed.push({ name_module: name, end_date });
   }
 
   const byDateDesc = (a, b) => (b.end_date || '').localeCompare(a.end_date || '');
   active.sort(byDateDesc);
   lapsed.sort(byDateDesc);
-
   return { active, lapsed };
 }
 
