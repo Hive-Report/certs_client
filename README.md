@@ -183,22 +183,3 @@ npm install
 npm run dev
 ```
 
----
-
-## 🐛 Видалагодження
-
-```bash
-# Логи всіх контейнерів
-docker-compose logs -f
-
-# Логи окремого сервісу
-docker-compose logs -f backend
-docker-compose logs -f frontend
-
-# Зупинка
-docker-compose down
-
-# Очистка
-docker-compose down --rmi all --volumes
-```
-
