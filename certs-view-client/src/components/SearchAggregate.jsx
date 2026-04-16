@@ -436,7 +436,7 @@ export default function SearchAggregate() {
   const hasNothing = hasData && (licenses?.length ?? 0) === 0 && (certs?.length ?? 0) === 0;
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: PAGE_BG }}>
+    <div style={{ backgroundColor: PAGE_BG }}>
       <>
       <div style={{ maxWidth: 1400, margin: '0 auto', padding: '24px 16px' }}>
 
