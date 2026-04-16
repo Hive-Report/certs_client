@@ -237,6 +237,23 @@ class ApiService {
 
     return response.json();
   }
+
+  // === USPACY ENDPOINTS ===
+
+  /**
+   * Знайти ID компанії в Uspacy CRM за кодом ЄДРПОУ.
+   * Повертає { companyId: number | null }.
+   * @param {string} edrpou
+   */
+  async getUspacyCompanyId(edrpou) {
+    try {
+      const response = await this.get(`${this.endpoints.USPACY.COMPANY_ID}?edrpou=${encodeURIComponent(edrpou)}`);
+      if (!response.ok) return { companyId: null };
+      return response.json();
+    } catch {
+      return { companyId: null };
+    }
+  }
 }
 
 // Створюємо singleton instance

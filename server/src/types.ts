@@ -10,6 +10,9 @@ export interface Config {
   MEDOC_XOR_KEY: string;
   SUZS_EMAIL: string;
   SUZS_PASSWORD: string;
+  USPACY_SPACE: string;
+  USPACY_EMAIL: string;
+  USPACY_PASSWORD: string;
 }
 
 /** One payment row from cert.suzs.info */

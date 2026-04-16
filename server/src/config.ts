@@ -17,8 +17,11 @@ const getTestConfig = (): Config => {
     MEDOC_USER_AGENT: 'medoc1102192',
     MEDOC_DECRYPT_MARKER: '100464541611',
     MEDOC_XOR_KEY: 'test-xor-key',
-    SUZS_EMAIL:    'test@test.com',
-    SUZS_PASSWORD: 'test-password',
+    SUZS_EMAIL:       'test@test.com',
+    SUZS_PASSWORD:    'test-password',
+    USPACY_SPACE:     'ihive',
+    USPACY_EMAIL:     'test@test.com',
+    USPACY_PASSWORD:  'test-password',
   };
 };
 
@@ -45,8 +48,11 @@ const getProductionConfig = (): Config => {
     MEDOC_USER_AGENT: required('MEDOC_USER_AGENT', process.env.MEDOC_USER_AGENT),
     MEDOC_DECRYPT_MARKER: required('MEDOC_DECRYPT_MARKER', process.env.MEDOC_DECRYPT_MARKER),
     MEDOC_XOR_KEY: required('MEDOC_XOR_KEY', process.env.MEDOC_XOR_KEY),
-    SUZS_EMAIL:    required('SUZS_EMAIL',    process.env.SUZS_EMAIL),
-    SUZS_PASSWORD: required('SUZS_PASSWORD', process.env.SUZS_PASSWORD),
+    SUZS_EMAIL:      required('SUZS_EMAIL',      process.env.SUZS_EMAIL),
+    SUZS_PASSWORD:   required('SUZS_PASSWORD',   process.env.SUZS_PASSWORD),
+    USPACY_SPACE:    required('USPACY_SPACE',    process.env.USPACY_SPACE),
+    USPACY_EMAIL:    required('USPACY_EMAIL',    process.env.USPACY_EMAIL),
+    USPACY_PASSWORD: required('USPACY_PASSWORD', process.env.USPACY_PASSWORD),
   };
 };
 

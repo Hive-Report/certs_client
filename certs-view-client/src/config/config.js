@@ -19,6 +19,9 @@ const config = {
     },
     CERT_PAYMENTS: {
       SEARCH: '/api/cert-payments'
+    },
+    USPACY: {
+      COMPANY_ID: '/api/uspacy/company-id'
     }
   },
   
