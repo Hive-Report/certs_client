@@ -28,7 +28,7 @@ export default function UspacyTab({ companyId }) {
         border: 'none',
       }}
       allow="autoplay; microphone; camera; geolocation; clipboard-write"
-      sandbox="allow-downloads allow-same-origin allow-scripts allow-popups allow-forms allow-top-navigation allow-storage allow-modals allow-presentation"
+      sandbox="allow-downloads allow-same-origin allow-scripts allow-popups allow-forms allow-top-navigation allow-modals allow-presentation"
     />
   );
 }

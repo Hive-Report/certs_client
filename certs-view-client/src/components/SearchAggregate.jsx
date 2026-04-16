@@ -69,21 +69,32 @@ function dedupeModules(licenses) {
   return Array.from(map.entries()).map(([name, end_date]) => ({ name_module: name, end_date }));
 }
 
-function getActiveModules(licenses) {
-  return dedupeModules(licenses)
-    .filter(m => isActive(m.end_date))
-    .sort((a, b) => (b.end_date || '').localeCompare(a.end_date || ''));
+function aggregateModules(licenses) {
+  const map = new Map();
+  for (const lic of licenses) {
+    for (const mod of lic.modules) {
+      const name = mod.name_module || '';
+      const prev = map.get(name);
+      if (!prev || (mod.end_date && mod.end_date > prev)) map.set(name, mod.end_date);
+    }
+  }
+  const active = [];
+  const lapsed = [];
+  for (const [name, end_date] of map) {
+    if (isActive(end_date)) active.push({ name_module: name, end_date });
+    else if (end_date)      lapsed.push({ name_module: name, end_date });
+  }
+  const byDateDesc = (a, b) => (b.end_date || '').localeCompare(a.end_date || '');
+  active.sort(byDateDesc);
+  lapsed.sort(byDateDesc);
+  return { active, lapsed };
 }
 
 // Returns { active, expiringSoon, lapsed } counts for module-level stats
 function getModuleStats(licenses) {
-  const modules = dedupeModules(licenses);
-  const active      = modules.filter(m => isActive(m.end_date)).length;
-  const expiringSoon = modules.filter(m => isExpiringSoon(m.end_date)).length;
-  const lapsed      = modules.filter(m =>
-    !isActive(m.end_date) && m.end_date
-  ).length;
-  return { active, expiringSoon, lapsed };
+  const { active, lapsed } = aggregateModules(licenses);
+  const expiringSoon = active.filter(m => isExpiringSoon(m.end_date)).length;
+  return { active: active.length, expiringSoon, lapsed: lapsed.length };
 }
 
 // ── Status pill ───────────────────────────────────────────────────────────────
@@ -158,13 +169,9 @@ function LicensesSection({ licenses }) {
 
   // Section-level stats: aggregate across ALL types
   const sectionStats = useMemo(() => {
-    const all = dedupeModules(licenses);
-    const active       = all.filter(m => isActive(m.end_date)).length;
-    const expiringSoon = all.filter(m => isExpiringSoon(m.end_date)).length;
-    const lapsed       = all.filter(m =>
-      !isActive(m.end_date) && m.end_date
-    ).length;
-    return { active, expiringSoon, lapsed };
+    const { active, lapsed } = aggregateModules(licenses);
+    const expiringSoon = active.filter(m => isExpiringSoon(m.end_date)).length;
+    return { active: active.length, expiringSoon, lapsed: lapsed.length };
   }, [licenses]);
 
   const handleCopyLicensesInfo = () => {
@@ -208,14 +215,14 @@ function LicensesSection({ licenses }) {
 
       <div style={{ padding: '12px 18px' }}>
         {byType.map(({ name, list }) => {
-          const forms_set     = extractFormsSet(list);
-          const activeModules = getActiveModules(list);
-          const mStats        = getModuleStats(list);
+          const forms_set          = extractFormsSet(list);
+          const { active: activeModules, lapsed: lapsedModules } = aggregateModules(list);
+          const mStats             = getModuleStats(list);
 
           return (
-            <div key={name} style={{ marginBottom: 18 }}>
+            <div key={name} style={{ marginBottom: 22 }}>
               {/* Type name + forms_set + per-type module counters */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 6 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 8 }}>
                 <span style={{ fontWeight: 700, fontSize: 13, color: '#374151' }}>{name}</span>
                 {forms_set && (
                   <span style={{
@@ -239,33 +246,69 @@ function LicensesSection({ licenses }) {
                   </span>
                 )}
               </div>
-              {activeModules.length === 0 ? (
-                <p style={{ color: '#9ca3af', fontSize: 12, margin: 0 }}>Немає діючих модулів</p>
-              ) : (
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
-                  <thead>
-                    <tr style={{ backgroundColor: '#f9fafb' }}>
-                      <th style={TH}>Модуль</th>
-                      <th style={{ ...TH, width: 140 }}>Закінчується</th>
-                      <th style={{ ...TH, width: 120 }}>Статус</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {activeModules.map((mod, i) => {
-                      const soon  = isExpiringSoon(mod.end_date);
-                      const rowBg = soon ? '#fff8e1' : (i % 2 ? '#fafafa' : '#fff');
-                      return (
-                        <tr key={i} style={{ borderBottom: '1px solid #f3f4f6', backgroundColor: rowBg }}>
-                          <td style={TD}>{mod.name_module}</td>
-                          <td style={{ ...TD, color: soon ? '#b45309' : '#374151', fontWeight: soon ? 700 : 400 }}>
-                            {formatIso(mod.end_date)}
-                          </td>
-                          <td style={TD}><StatusPill iso={mod.end_date} /></td>
+
+              {/* Active modules */}
+              {activeModules.length > 0 && (
+                <div style={{ marginBottom: lapsedModules.length > 0 ? 10 : 0 }}>
+                  <div style={{ fontWeight: 600, fontSize: 12, color: '#1a7a56', marginBottom: 4 }}>✅ Діючі:</div>
+                  <div style={{ border: '1px solid #e5e7eb', borderRadius: 8, overflow: 'hidden' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+                      <thead>
+                        <tr style={{ backgroundColor: '#f9fafb' }}>
+                          <th style={TH}>Модуль</th>
+                          <th style={{ ...TH, width: 140 }}>Закінчується</th>
+                          <th style={{ ...TH, width: 120 }}>Статус</th>
                         </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+                      </thead>
+                      <tbody>
+                        {activeModules.map((mod, i) => {
+                          const soon  = isExpiringSoon(mod.end_date);
+                          const rowBg = soon ? '#fff8e1' : (i % 2 ? '#fafafa' : '#fff');
+                          return (
+                            <tr key={i} style={{ borderBottom: '1px solid #f3f4f6', backgroundColor: rowBg }}>
+                              <td style={TD}>{mod.name_module}</td>
+                              <td style={{ ...TD, color: soon ? '#b45309' : '#374151', fontWeight: soon ? 700 : 400 }}>
+                                {formatIso(mod.end_date)}
+                              </td>
+                              <td style={TD}><StatusPill iso={mod.end_date} /></td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* Lapsed modules */}
+              {lapsedModules.length > 0 && (
+                <div>
+                  <div style={{ fontWeight: 600, fontSize: 12, color: '#b91c1c', marginBottom: 4 }}>❌ Не продовжено:</div>
+                  <div style={{ border: '1px solid #fca5a5', borderRadius: 8, overflow: 'hidden' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+                      <thead>
+                        <tr style={{ backgroundColor: '#f9fafb' }}>
+                          <th style={TH}>Модуль</th>
+                          <th style={{ ...TH, width: 140 }}>Закінчилось</th>
+                          <th style={{ ...TH, width: 120 }}>Статус</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {lapsedModules.map((mod, i) => (
+                          <tr key={i} style={{ borderBottom: '1px solid #f3f4f6', backgroundColor: i % 2 ? '#fef9f9' : '#fff' }}>
+                            <td style={TD}>{mod.name_module}</td>
+                            <td style={{ ...TD, color: '#dc2626', fontWeight: 700 }}>{formatIso(mod.end_date)}</td>
+                            <td style={TD}><StatusPill iso={mod.end_date} /></td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {activeModules.length === 0 && lapsedModules.length === 0 && (
+                <p style={{ color: '#9ca3af', fontSize: 12, margin: 0 }}>Немає даних про модулі</p>
               )}
             </div>
           );

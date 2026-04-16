@@ -179,7 +179,7 @@ function TypePanel({ licenses }) {
       {lapsed.length > 0 && (
         <div>
           <div style={{ fontWeight: 700, fontSize: 14, color: '#b91c1c', marginBottom: 8 }}>
-            ❌ Не продовжено (минулий рік):
+            ❌ Не продовжено:
           </div>
           <div style={{ border: '1px solid #fca5a5', borderRadius: 8, overflow: 'hidden' }}>
             <ModuleTable modules={lapsed} isLapsed={true} />
