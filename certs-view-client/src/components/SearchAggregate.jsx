@@ -174,9 +174,9 @@ function LicensesSection({ licenses }) {
       return `${name}${forms_set ? ` (${forms_set})` : ''}\n${modulesText || '(немає модулів)'}`;
     }).join('\n\n');
     navigator.clipboard.writeText(info).then(() => {
-      alert('Інформацію про ліцензії скопійовано');
+      // alert('Інформацію про ліцензії скопійовано');
     }).catch(() => {
-      alert('Помилка копіювання');
+      // alert('Помилка копіювання');
     });
   };
 

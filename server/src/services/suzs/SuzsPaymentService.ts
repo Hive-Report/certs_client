@@ -58,12 +58,31 @@ export class SuzsPaymentService {
 
   // ── HTML parsing ──────────────────────────────────────────────────────────
 
+  /** Normalize a Ukrainian/European number string to a JS float.
+   *  Handles spaces and &nbsp; as thousands separator, comma as decimal.
+   *  Examples: "9 565 498,12" → 9565498.12 | "534,00" → 534.00
+   */
+  private parseSum(raw: string): number {
+    // Replace &nbsp; and regular spaces (thousands separators), then swap comma→dot
+    const normalized = raw
+      .replace(/&nbsp;/g, '')
+      .replace(/\s/g, '')
+      .replace(',', '.');
+    const n = parseFloat(normalized);
+    return isNaN(n) ? 0 : n;
+  }
+
+  /** Format a float as "9 565 498.12" (space-separated thousands, dot decimal) */
+  private formatSum(value: number): string {
+    return value.toLocaleString('uk-UA', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
   private parsePayments(html: string): SuzsPaymentResult {
     const payments: SuzsPayment[] = [];
 
     // Find <table class="text1">
     const tableMatch = html.match(/<table[^>]+class=text1[^>]*>([\s\S]*?)<\/table>/i);
-    if (!tableMatch) return { payments, summary: { count: 0, total_sum: '0' } };
+    if (!tableMatch) return { payments, summary: { count: 0, total_sum: '0.00' } };
 
     const tableHtml = tableMatch[1];
 
@@ -89,27 +108,31 @@ export class SuzsPaymentService {
 
       if (cells.length >= 8) {
         payments.push({
-          edrpou:       cells[0],
-          name:         cells[1],
-          sum:          cells[2],
-          used_sum:     cells[3],
-          date:         cells[4],
+          edrpou:        cells[0],
+          name:          cells[1],
+          sum:           cells[2],
+          used_sum:      cells[3],
+          date:          cells[4],
           credited_date: cells[5],
-          purpose:      cells[6],
-          cert_until:   cells[7],
+          purpose:       cells[6],
+          cert_until:    cells[7],
         });
       }
     }
 
-    // Parse summary: К-СТЬ ЗАПИСІВ and ЗАГАЛЬНА СУМА
+    // Calculate total sum from individual payment rows (most reliable approach).
+    // The HTML summary may use &nbsp; as thousands separator which can trip up
+    // simple regexes, so we sum the already-parsed cell values instead.
+    const totalFromRows = payments.reduce((acc, p) => acc + this.parseSum(p.sum), 0);
+
+    // Attempt to read record count from the summary section; fall back to row count.
     const countMatch = html.match(/К-СТЬ ЗАПИСІВ[\s\S]*?<b>(\d+)<\/b>/i);
-    const sumMatch   = html.match(/ЗАГАЛЬНА СУМА[\s\S]*?<b>([\d\s.,]+)<\/b>/i);
 
     return {
       payments,
       summary: {
         count:     countMatch ? parseInt(countMatch[1], 10) : payments.length,
-        total_sum: sumMatch   ? sumMatch[1].trim() : '',
+        total_sum: this.formatSum(totalFromRows),
       },
     };
   }

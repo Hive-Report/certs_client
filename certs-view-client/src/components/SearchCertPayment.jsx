@@ -147,7 +147,7 @@ export default function SearchCertPayment() {
                 type="text"
                 className="form-control"
                 style={{ width: 160 }}
-                placeholder="44219386"
+                placeholder=""
                 value={edrpou}
                 onChange={e => setEdrpou(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && doSearch()}
@@ -162,7 +162,7 @@ export default function SearchCertPayment() {
               <input
                 type="text"
                 className="form-control"
-                placeholder="26125035"
+                placeholder=""
                 value={naznachenie}
                 onChange={e => setNaznachenie(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && doSearch()}
