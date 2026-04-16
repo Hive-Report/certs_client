@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import SearchCerts from './components/SearchCerts';
 import SearchMedoc from './components/SearchMedoc';
 import SearchAggregate from './components/SearchAggregate';
+import SearchCertPayment from './components/SearchCertPayment';
 import Login from './components/Login';
 import Register from './components/Register';
 import Header from './components/Header';
@@ -91,6 +92,7 @@ function App() {
         <Route path="/overview" element={<SearchAggregate />} />
         <Route path="/certs" element={<SearchCerts />} />
         <Route path="/medoc_license" element={<SearchMedoc />} />
+        <Route path="/cert-payments" element={<SearchCertPayment />} />
         <Route path="*" element={<Navigate to="/overview" replace />} />
       </Routes>
     </div>

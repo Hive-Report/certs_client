@@ -218,6 +218,25 @@ class ApiService {
 
     return response.json();
   }
+
+  // === CERT PAYMENTS ENDPOINTS ===
+
+  /**
+   * Пошук оплат КЕП у cert.suzs.info
+   * @param {string} queryString - URLSearchParams string
+   */
+  async searchCertPayments(queryString) {
+    const response = await this.get(`${this.endpoints.CERT_PAYMENTS.SEARCH}?${queryString}`);
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        throw new Error('Сесія закінчилась. Будь ласка, авторизуйтесь знову.');
+      }
+      throw new Error(`Помилка сервера: ${response.status}`);
+    }
+
+    return response.json();
+  }
 }
 
 // Створюємо singleton instance
