@@ -525,6 +525,7 @@ export default function SearchAggregate() {
   const handleSearch = () => {
     if (!search.trim()) { setError('Будь ласка, введіть ЄДРПОУ'); return; }
     doSearch(search.trim());
+    setCrmOpen(false);
   };
 
   const handleCrmSearch = () => {
