@@ -437,7 +437,7 @@ export default function SearchAggregate() {
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: PAGE_BG }}>
-      <div style={{ maxWidth: 1400, margin: '0 auto', padding: '24px 16px' }}>
+      <div style={{ maxWidth: 1600, margin: '0 auto', padding: '24px 16px' }}>
 
         <h1 style={{ fontSize: '1.4rem', fontWeight: 700, color: '#111827', marginBottom: 6 }}>
           🗂️ Зведений вигляд
@@ -555,9 +555,9 @@ export default function SearchAggregate() {
                     <div style={{ fontWeight: 700, fontSize: '1rem', color: '#111827' }}>
                       Uspacy
                     </div>
-                    <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>
+                    {/* <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>
                       {searched && `Пошук: ${searched}`}
-                    </div>
+                    </div> */}
                   </div>
                 </button>
 
