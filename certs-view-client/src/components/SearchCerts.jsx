@@ -419,7 +419,7 @@ export default function SearchCerts() {
             <div className="input-group w-100" style={{maxWidth: 300}}>
               <input
                 type="text"
-                placeholder="Введіть ЄДРПОУ..."
+                placeholder="Введіть ЄДРПОУ"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 onKeyDown={handleKeyPress}
