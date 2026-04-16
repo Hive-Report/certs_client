@@ -33,17 +33,33 @@ const Login = ({ onLogin, onShowRegister }) => {
                 width={100}
                 style={{ objectFit: 'contain', marginRight: '40px' }}
               />
-              <Image
+              {/* <Image
                 src="/acsk_logo.png"
                 alt="ACSK Logo"
                 rounded
                 height={80}
                 width={80}
                 style={{ objectFit: 'contain' }}
+              /> */}
+              <Image
+                src="/Coat_of_arms_of_Kherson.svg.png"
+                alt="Kherson Logo"
+                rounded
+                height={80}
+                width={80}
+                style={{ objectFit: 'contain' }}
               />
+              {/* <Image
+                src="/medoc.ico"
+                alt="ACSK Logo"
+                rounded
+                height={80}
+                width={80}
+                style={{ objectFit: 'contain' }}
+              /> */}
             </div>
             <Card.Title as="h1" className="mb-2" style={{ fontSize: '2rem', fontWeight: 'bold' }}>Вхід до системи</Card.Title>
-            <Card.Text className="text-muted">Пошук сертифікатів електронного підпису</Card.Text>
+            <Card.Text className="text-muted">Пошук інформації про сертифікати електронного підпису та ліцензіїї M.E.Doc</Card.Text>
           </div>
           <div
             className="mb-3"
