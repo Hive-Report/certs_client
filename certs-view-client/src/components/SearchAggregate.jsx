@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import apiService from '../services/apiService.js';
 import UspacyTab from './UspacyTab.jsx';
+import pageStateStore from '../store/pageStateStore.js';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const BRAND   = '#32C48D';
@@ -370,17 +371,23 @@ const TD = { padding: '8px 14px', color: '#374151' };
 export default function SearchAggregate() {
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const [search,      setSearch]      = useState(searchParams.get('q') || localStorage.getItem('hive_last_edrpou') || '');
-  const [licenses,    setLicenses]    = useState(null);
-  const [certs,       setCerts]       = useState(null);
+  // ── Restore from session store if available ───────────────────────────────
+  const _saved = pageStateStore.get('aggregate');
+  const _urlQ  = searchParams.get('q');
+
+  const [search,      setSearch]      = useState(_urlQ || _saved?.search || localStorage.getItem('hive_last_edrpou') || '');
+  const [licenses,    setLicenses]    = useState(_saved?.licenses ?? null);
+  const [certs,       setCerts]       = useState(_saved?.certs    ?? null);
   const [loading,     setLoading]     = useState(false);
   const [error,       setError]       = useState('');
-  const [searched,    setSearched]    = useState('');
+  const [searched,    setSearched]    = useState(_saved?.searched ?? '');
   const [crmOpen,     setCrmOpen]     = useState(false);
   const [crmSearching, setCrmSearching] = useState(false);
 
   useEffect(() => {
     const q = searchParams.get('q');
+    // If the store already has results for this EDRPOU, skip the network call
+    if (_saved?.searched && (!q || _saved.searched === q)) return;
     if (q) doSearch(q);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -396,18 +403,15 @@ export default function SearchAggregate() {
       apiService.searchCerts(edrpou.trim()),
     ]);
 
-    if (licR.status === 'fulfilled') {
-      setLicenses(Array.isArray(licR.value) ? licR.value : []);
-    } else {
-      setLicenses([]);
-    }
+    const licData  = licR.status === 'fulfilled'
+      ? (Array.isArray(licR.value) ? licR.value : [])
+      : [];
+    const certData = certR.status === 'fulfilled'
+      ? (() => { const d = certR.value; return Array.isArray(d) ? d : (d?.data ?? []); })()
+      : [];
 
-    if (certR.status === 'fulfilled') {
-      const d = certR.value;
-      setCerts(Array.isArray(d) ? d : (d?.data ?? []));
-    } else {
-      setCerts([]);
-    }
+    setLicenses(licData);
+    setCerts(certData);
 
     if (licR.status === 'rejected' && certR.status === 'rejected') {
       setError('Помилка завантаження даних. Перевірте ЄДРПОУ.');
@@ -416,6 +420,12 @@ export default function SearchAggregate() {
     setSearched(edrpou.trim());
     localStorage.setItem('hive_last_edrpou', edrpou.trim());
     setSearchParams({ q: edrpou.trim() }, { replace: true });
+    pageStateStore.set('aggregate', {
+      search:   edrpou.trim(),
+      searched: edrpou.trim(),
+      licenses: licData,
+      certs:    certData,
+    });
     setLoading(false);
   };
 

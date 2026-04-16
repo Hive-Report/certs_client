@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import apiService from '../services/apiService.js';
+import pageStateStore from '../store/pageStateStore.js';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const BRAND   = '#32C48D';
@@ -193,16 +194,21 @@ function TypePanel({ licenses }) {
 export default function SearchMedoc() {
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const [search,   setSearch]   = useState(searchParams.get('q') || localStorage.getItem('hive_last_edrpou') || '');
-  const [data,     setData]     = useState([]);
-  const [loading,  setLoading]  = useState(false);
-  const [error,    setError]    = useState('');
-  const [searched, setSearched] = useState(''); // ЄДРПОУ last searched
-  const [activeTab, setActiveTab] = useState(searchParams.get('tab') || '');
+  // ── Restore from session store if available ───────────────────────────────
+  const _saved = pageStateStore.get('medoc');
+  const _urlQ  = searchParams.get('q');
 
-  // Auto-search on mount if q is in URL
+  const [search,    setSearch]    = useState(_urlQ || _saved?.search || localStorage.getItem('hive_last_edrpou') || '');
+  const [data,      setData]      = useState(_saved?.data     ?? []);
+  const [loading,   setLoading]   = useState(false);
+  const [error,     setError]     = useState('');
+  const [searched,  setSearched]  = useState(_saved?.searched ?? '');
+  const [activeTab, setActiveTab] = useState(_saved?.activeTab || searchParams.get('tab') || '');
+
+  // Auto-search on mount if q is in URL — skip if store already has matching results
   useEffect(() => {
     const q = searchParams.get('q');
+    if (_saved?.searched && (!q || _saved.searched === q)) return;
     if (q) doSearch(q);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -213,16 +219,22 @@ export default function SearchMedoc() {
     try {
       const result = await apiService.searchMedoc(edrpou.trim());
       const list = Array.isArray(result) ? result : [];
-      setData(list);
-      setSearched(edrpou.trim());
-      localStorage.setItem('hive_last_edrpou', edrpou.trim());
       // Set default tab to first available type
       const firstType = list.length > 0 ? list[0].lic_type : '';
       const tabParam   = searchParams.get('tab');
-      // Use URL tab if it exists in results, else first
       const validTab = list.some(l => l.lic_type === tabParam) ? tabParam : firstType;
+
+      setData(list);
+      setSearched(edrpou.trim());
       setActiveTab(validTab);
+      localStorage.setItem('hive_last_edrpou', edrpou.trim());
       setSearchParams({ q: edrpou.trim(), ...(validTab ? { tab: validTab } : {}) }, { replace: true });
+      pageStateStore.set('medoc', {
+        search:    edrpou.trim(),
+        searched:  edrpou.trim(),
+        data:      list,
+        activeTab: validTab,
+      });
     } catch (err) {
       setError(err.message || 'Помилка при завантаженні даних');
       setData([]);

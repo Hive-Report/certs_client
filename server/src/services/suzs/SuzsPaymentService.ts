@@ -12,14 +12,79 @@ const HEADERS = {
   'Referer': SUZS_URL,
 };
 
+// ── In-memory response cache ──────────────────────────────────────────────────
+
+interface CacheEntry {
+  result:    SuzsPaymentResult;
+  expiresAt: number;
+}
+
+/**
+ * Smart TTL strategy:
+ *  - Historical queries (dateEnd strictly before today): 60 minutes.
+ *    Past payment records never change, so we can hold them a long time.
+ *  - Current / future queries (dateEnd >= today): 5 minutes.
+ *    New payments may arrive during the business day.
+ */
+function cacheTtlMs(dateEndDmy: string): number {
+  const HISTORICAL_TTL = 60 * 60 * 1000;  // 60 min
+  const CURRENT_TTL    =  5 * 60 * 1000;  //  5 min
+
+  const parts = dateEndDmy.split('.');
+  if (parts.length !== 3) return CURRENT_TTL;
+  const [d, m, y] = parts.map(Number);
+  if (!d || !m || !y) return CURRENT_TTL;
+
+  const dateEnd = new Date(y, m - 1, d);
+  const today   = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  return dateEnd < today ? HISTORICAL_TTL : CURRENT_TTL;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 export class SuzsPaymentService {
   private readonly logger: Logger;
   /** In-memory session cookies — reused across requests */
   private sessionCookies: string = '';
   private sessionExpiry: number = 0;
+  /** Response cache: cacheKey → { result, expiresAt } */
+  private readonly cache = new Map<string, CacheEntry>();
 
   constructor(logger: Logger) {
     this.logger = logger;
+  }
+
+  // ── Cache helpers ─────────────────────────────────────────────────────────
+
+  private buildCacheKey(params: Record<string, string | undefined>): string {
+    return Object.entries(params)
+      .filter(([, v]) => !!v)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([k, v]) => `${k}=${v}`)
+      .join('&');
+  }
+
+  private getCached(key: string): SuzsPaymentResult | null {
+    const entry = this.cache.get(key);
+    if (!entry) return null;
+    if (Date.now() > entry.expiresAt) {
+      this.cache.delete(key);
+      return null;
+    }
+    return entry.result;
+  }
+
+  private setCached(key: string, result: SuzsPaymentResult, ttlMs: number): void {
+    // Evict expired entries if cache grows large (safety valve)
+    if (this.cache.size >= 200) {
+      const now = Date.now();
+      for (const [k, v] of this.cache) {
+        if (now > v.expiresAt) this.cache.delete(k);
+      }
+    }
+    this.cache.set(key, { result, expiresAt: Date.now() + ttlMs });
   }
 
   // ── Authentication ────────────────────────────────────────────────────────
@@ -63,7 +128,6 @@ export class SuzsPaymentService {
    *  Examples: "9 565 498,12" → 9565498.12 | "534,00" → 534.00
    */
   private parseSum(raw: string): number {
-    // Replace &nbsp; and regular spaces (thousands separators), then swap comma→dot
     const normalized = raw
       .replace(/&nbsp;/g, '')
       .replace(/\s/g, '')
@@ -72,7 +136,7 @@ export class SuzsPaymentService {
     return isNaN(n) ? 0 : n;
   }
 
-  /** Format a float as "9 565 498.12" (space-separated thousands, dot decimal) */
+  /** Format a float as Ukrainian locale string, e.g. "9 565 498,12" */
   private formatSum(value: number): string {
     return value.toLocaleString('uk-UA', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   }
@@ -82,7 +146,7 @@ export class SuzsPaymentService {
 
     // Find <table class="text1">
     const tableMatch = html.match(/<table[^>]+class=text1[^>]*>([\s\S]*?)<\/table>/i);
-    if (!tableMatch) return { payments, summary: { count: 0, total_sum: '0.00' } };
+    if (!tableMatch) return { payments, summary: { count: 0, total_sum: '0,00' } };
 
     const tableHtml = tableMatch[1];
 
@@ -97,7 +161,6 @@ export class SuzsPaymentService {
       const cellRegex = /<td[^>]*class=flag1[^>]*>([\s\S]*?)<\/td>/gi;
       let cellMatch;
       while ((cellMatch = cellRegex.exec(rowHtml)) !== null) {
-        // Strip HTML tags, decode entities, trim
         const text = cellMatch[1]
           .replace(/<[^>]+>/g, ' ')
           .replace(/&nbsp;/g, ' ')
@@ -148,7 +211,27 @@ export class SuzsPaymentService {
     updateDateEnd?:   string;
     certDateStart?:   string;
     certDateEnd?:     string;
+    refresh?:         boolean;  // when true, bypass cache
   }): Promise<SuzsPaymentResult> {
+
+    const { refresh, ...searchParams } = params;
+    const cacheKey = this.buildCacheKey(searchParams as Record<string, string | undefined>);
+    const ttl      = cacheTtlMs(params.dateEnd);
+
+    // ── Cache lookup ──────────────────────────────────────────────────────
+    if (!refresh) {
+      const cached = this.getCached(cacheKey);
+      if (cached) {
+        const remaining = Math.round((this.cache.get(cacheKey)!.expiresAt - Date.now()) / 1000);
+        this.logger.info(`SUZS cache HIT (key="${cacheKey}", ttl_left=${remaining}s)`);
+        return cached;
+      }
+    } else {
+      this.logger.info('SUZS cache BYPASS (refresh=true)');
+      this.cache.delete(cacheKey);
+    }
+
+    // ── Fetch from cert.suzs.info ─────────────────────────────────────────
     await this.ensureSession();
 
     const doRequest = async (): Promise<SuzsPaymentResult> => {
@@ -178,13 +261,18 @@ export class SuzsPaymentService {
       return this.parsePayments(html);
     };
 
+    let result: SuzsPaymentResult;
     try {
-      return await doRequest();
+      result = await doRequest();
     } catch (err) {
       // Re-authenticate once and retry
       this.logger.warn('SUZS payment request failed, re-authenticating...');
       await this.authenticate();
-      return doRequest();
+      result = await doRequest();
     }
+
+    this.setCached(cacheKey, result, ttl);
+    this.logger.info(`SUZS cache SET (key="${cacheKey}", ttl=${ttl / 1000}s, records=${result.payments.length})`);
+    return result;
   }
 }
