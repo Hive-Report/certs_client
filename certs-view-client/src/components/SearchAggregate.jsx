@@ -446,7 +446,8 @@ export default function SearchAggregate() {
   const [crmOpen,      setCrmOpen]      = useState(false);
   const [crmMounted,   setCrmMounted]   = useState(true);
   const [crmSearching, setCrmSearching] = useState(false);
-  const [crmCompanyId, setCrmCompanyId] = useState(_saved?.crmCompanyId ?? null); // Uspacy company ID
+  const [crmCompanyId, setCrmCompanyId] = useState(_saved?.crmCompanyId ?? null); // latest from main search
+  const [iframeCompanyId, setIframeCompanyId] = useState(_saved?.crmCompanyId ?? null); // what iframe actually shows
 
   useEffect(() => {
     const q = searchParams.get('q');
@@ -533,6 +534,7 @@ export default function SearchAggregate() {
     setCrmSearching(true);
     setCrmOpen(true);
     setCrmMounted(true);
+    setIframeCompanyId(crmCompanyId); // only here does the iframe actually update
     setTimeout(() => setCrmSearching(false), 500);
     requestAnimationFrame(() => fastScroll(document.body.scrollHeight));
   };
@@ -677,7 +679,7 @@ export default function SearchAggregate() {
 
         {crmMounted && (
           <div style={{ display: crmOpen ? 'block' : 'none' }}>
-            <UspacyTab companyId={crmCompanyId} />
+            <UspacyTab companyId={iframeCompanyId} />
           </div>
         )}
       </div>
