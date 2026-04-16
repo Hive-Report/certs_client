@@ -8,6 +8,8 @@ export interface Config {
   MEDOC_USER_AGENT: string;
   MEDOC_DECRYPT_MARKER: string;
   MEDOC_XOR_KEY: string;
+  MEDOC_ACTION_URL: string;
+  MEDOC_ACTION_XOR_KEY: string;
   SUZS_EMAIL: string;
   SUZS_PASSWORD: string;
   USPACY_SPACE: string;

@@ -219,6 +219,21 @@ class ApiService {
     return response.json();
   }
 
+  /**
+   * Отримати ім'я дилера M.E.Doc за ЄДРПОУ.
+   * Повертає { dealer: string | null }.
+   * Best-effort — при помилці повертає { dealer: null }.
+   */
+  async getMedocDealer(edrpou) {
+    try {
+      const response = await this.get(`${this.endpoints.MEDOC.DEALER}/${edrpou}/dealer`);
+      if (!response.ok) return { dealer: null };
+      return response.json();
+    } catch {
+      return { dealer: null };
+    }
+  }
+
   // === CERT PAYMENTS ENDPOINTS ===
 
   /**

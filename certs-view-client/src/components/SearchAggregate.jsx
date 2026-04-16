@@ -144,21 +144,29 @@ function Card({ children, style }) {
 }
 
 // ── Stats row ─────────────────────────────────────────────────────────────────
-function StatsRow({ items }) {
+function StatsRow({ items, dealer }) {
   return (
-    <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', padding: '12px 18px', backgroundColor: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
+    <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', padding: '12px 18px', backgroundColor: '#f9fafb', borderBottom: '1px solid #e5e7eb', alignItems: 'center' }}>
       {items.map(({ label, value, color }) => (
         <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <span style={{ fontSize: 15, fontWeight: 700, color }}>{value}</span>
           <span style={{ fontSize: 12, color: '#6b7280' }}>{label}</span>
         </div>
       ))}
+      {dealer && (
+        <>
+          <span style={{ color: '#d1d5db' }}>|</span>
+          <span style={{ fontSize: 12, color: '#6b7280' }}>
+            Дилер: <span style={{ color: '#374151', fontWeight: 500 }}>{dealer}</span>
+          </span>
+        </>
+      )}
     </div>
   );
 }
 
 // ── Licenses aggregate section ────────────────────────────────────────────────
-function LicensesSection({ licenses }) {
+function LicensesSection({ licenses, dealer }) {
   const byType = useMemo(() => {
     const map = new Map();
     for (const lic of licenses) {
@@ -175,18 +183,23 @@ function LicensesSection({ licenses }) {
     return { active: active.length, expiringSoon, lapsed: lapsed.length };
   }, [licenses]);
 
+  const [copied, setCopied] = useState(false);
+
   const handleCopyLicensesInfo = () => {
-    const info = byType.map(({ name, list }) => {
+    const lines = byType.map(({ name, list }, idx) => {
       const forms_set = extractFormsSet(list);
-      const modules = dedupeModules(list).filter(m => m.end_date);
+      const { active, lapsed } = aggregateModules(list);
+      const modules = [...active, ...lapsed].filter(m => m.end_date);
+      const header = (idx === 0 && dealer)
+        ? `Дилер: ${dealer} ${name}${forms_set ? ` (${forms_set})` : ''}`
+        : `${name}${forms_set ? ` (${forms_set})` : ''}`;
       const modulesText = modules.map(m => `- ${m.name_module}: ${formatIso(m.end_date)}`).join('\n');
-      return `${name}${forms_set ? ` (${forms_set})` : ''}\n${modulesText || '(немає модулів)'}`;
-    }).join('\n\n');
-    navigator.clipboard.writeText(info).then(() => {
-      // alert('Інформацію про ліцензії скопійовано');
-    }).catch(() => {
-      // alert('Помилка копіювання');
+      return `${header}${modulesText ? `\n${modulesText}` : ''}`;
     });
+    navigator.clipboard.writeText(lines.join('\n')).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }).catch(() => {});
   };
 
   return (
@@ -199,20 +212,24 @@ function LicensesSection({ licenses }) {
         <button
           onClick={handleCopyLicensesInfo}
           style={{
-            backgroundColor: 'transparent', border: '1px solid #d1d5db', color: '#374151',
+            backgroundColor: 'transparent', border: `1px solid ${copied ? '#1a7a56' : '#d1d5db'}`,
+            color: copied ? '#1a7a56' : '#374151',
             borderRadius: 6, padding: '4px 12px', fontSize: 12, fontWeight: 500,
-            cursor: 'pointer', whiteSpace: 'nowrap',
+            cursor: 'pointer', whiteSpace: 'nowrap', transition: 'color 0.15s, border-color 0.15s',
           }}
           title="Копіювати інформацію про ліцензії"
         >
-          📋 Копіювати
+          {copied ? '✓ Скопійовано' : '📋 Копіювати'}
         </button>
       </div>
-      <StatsRow items={[
-        { label: 'діючих модулів',          value: sectionStats.active,       color: '#1a7a56' },
-        ...(sectionStats.expiringSoon > 0 ? [{ label: 'закінчуються ≤2 міс.', value: sectionStats.expiringSoon, color: '#b45309' }] : []),
-        ...(sectionStats.lapsed > 0       ? [{ label: 'не продовжено',        value: sectionStats.lapsed,       color: '#991b1b' }] : []),
-      ]} />
+      <StatsRow
+        dealer={dealer}
+        items={[
+          { label: 'діючих модулів',          value: sectionStats.active,       color: '#1a7a56' },
+          ...(sectionStats.expiringSoon > 0 ? [{ label: 'закінчуються ≤2 міс.', value: sectionStats.expiringSoon, color: '#b45309' }] : []),
+          ...(sectionStats.lapsed > 0       ? [{ label: 'не продовжено',        value: sectionStats.lapsed,       color: '#991b1b' }] : []),
+        ]}
+      />
 
       <div style={{ padding: '12px 18px' }}>
         {byType.map(({ name, list }) => {
@@ -422,6 +439,7 @@ export default function SearchAggregate() {
   const [search,      setSearch]      = useState(_urlQ || _saved?.search || localStorage.getItem('hive_last_edrpou') || '');
   const [licenses,    setLicenses]    = useState(_saved?.licenses ?? null);
   const [certs,       setCerts]       = useState(_saved?.certs    ?? null);
+  const [dealer,      setDealer]      = useState(_saved?.dealer   ?? null);
   const [loading,     setLoading]     = useState(false);
   const [error,       setError]       = useState('');
   const [searched,    setSearched]    = useState(_saved?.searched ?? '');
@@ -446,20 +464,24 @@ export default function SearchAggregate() {
     setLicenses(null);
     setCerts(null);
     setCrmCompanyId(null);
+    setDealer(null);
 
     // Reuse cached results when available — only fetch what's missing
-    const cachedMedoc  = edrpouCache.hasMedoc(key)  ? edrpouCache.getMedoc(key)  : undefined;
-    const cachedCerts  = edrpouCache.hasCerts(key)  ? edrpouCache.getCerts(key)  : undefined;
-    const cachedCrmId  = edrpouCache.hasCrmId(key)  ? edrpouCache.getCrmId(key)  : undefined;
+    const cachedMedoc  = edrpouCache.hasMedoc(key)   ? edrpouCache.getMedoc(key)   : undefined;
+    const cachedCerts  = edrpouCache.hasCerts(key)   ? edrpouCache.getCerts(key)   : undefined;
+    const cachedCrmId  = edrpouCache.hasCrmId(key)   ? edrpouCache.getCrmId(key)   : undefined;
+    const cachedDealer = edrpouCache.hasDealer(key)  ? edrpouCache.getDealer(key)  : undefined;
 
-    const needMedoc = cachedMedoc  === undefined;
-    const needCerts = cachedCerts  === undefined;
-    const needCrmId = cachedCrmId  === undefined;
+    const needMedoc  = cachedMedoc  === undefined;
+    const needCerts  = cachedCerts  === undefined;
+    const needCrmId  = cachedCrmId  === undefined;
+    const needDealer = cachedDealer === undefined;
 
-    const [licR, certR, crmR] = await Promise.allSettled([
-      needMedoc  ? apiService.searchMedoc(key)         : Promise.resolve(cachedMedoc),
-      needCerts  ? apiService.searchCerts(key)         : Promise.resolve(cachedCerts),
-      needCrmId  ? apiService.getUspacyCompanyId(key)  : Promise.resolve({ companyId: cachedCrmId }),
+    const [licR, certR, crmR, dealerR] = await Promise.allSettled([
+      needMedoc  ? apiService.searchMedoc(key)                                       : Promise.resolve(cachedMedoc),
+      needCerts  ? apiService.searchCerts(key)                                       : Promise.resolve(cachedCerts),
+      needCrmId  ? apiService.getUspacyCompanyId(key)                               : Promise.resolve({ companyId: cachedCrmId }),
+      needDealer ? apiService.getMedocDealer(key)                                   : Promise.resolve({ dealer: cachedDealer }),
     ]);
 
     const licData  = licR.status === 'fulfilled'
@@ -468,18 +490,19 @@ export default function SearchAggregate() {
     const certData = certR.status === 'fulfilled'
       ? (() => { const d = certR.value; return Array.isArray(d) ? d : (d?.data ?? []); })()
       : [];
-    const companyId = crmR.status === 'fulfilled'
-      ? (crmR.value?.companyId ?? null)
-      : null;
+    const companyId  = crmR.status    === 'fulfilled' ? (crmR.value?.companyId   ?? null) : null;
+    const dealerName = dealerR.status === 'fulfilled' ? (dealerR.value?.dealer   ?? null) : null;
 
     // Populate shared cache for any data that was freshly fetched
-    if (needMedoc  && licR.status  === 'fulfilled') edrpouCache.setMedoc(key, licData);
-    if (needCerts  && certR.status === 'fulfilled') edrpouCache.setCerts(key, certData);
-    if (needCrmId  && crmR.status  === 'fulfilled') edrpouCache.setCrmId(key, companyId);
+    if (needMedoc  && licR.status    === 'fulfilled') edrpouCache.setMedoc(key, licData);
+    if (needCerts  && certR.status   === 'fulfilled') edrpouCache.setCerts(key, certData);
+    if (needCrmId  && crmR.status    === 'fulfilled') edrpouCache.setCrmId(key, companyId);
+    if (needDealer && dealerR.status === 'fulfilled') edrpouCache.setDealer(key, dealerName);
 
     setLicenses(licData);
     setCerts(certData);
     setCrmCompanyId(companyId);
+    setDealer(dealerName);
 
     if (licR.status === 'rejected' && certR.status === 'rejected') {
       setError('Помилка завантаження даних. Перевірте ЄДРПОУ.');
@@ -494,6 +517,7 @@ export default function SearchAggregate() {
       licenses:     licData,
       certs:        certData,
       crmCompanyId: companyId,
+      dealer:       dealerName,
     });
     setLoading(false);
   };
@@ -559,7 +583,7 @@ export default function SearchAggregate() {
 
         {/* ЄДРПОУ badge with org name from latest "печатка" cert */}
         {searched && !loading && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20, flexWrap: 'wrap' }}>
             <div style={{
               display: 'inline-flex', alignItems: 'center', gap: 8,
               backgroundColor: '#fff', border: `1px solid ${BRAND}`, borderRadius: 8,
@@ -602,7 +626,7 @@ export default function SearchAggregate() {
         {/* Results */}
         {!loading && !hasNothing && (
           <>
-            {licenses && licenses.length > 0 && <LicensesSection licenses={licenses} />}
+            {licenses && licenses.length > 0 && <LicensesSection licenses={licenses} dealer={dealer} />}
             {certs    && certs.length    > 0 && <CertsSection    certs={certs} />}
           </>
         )}
