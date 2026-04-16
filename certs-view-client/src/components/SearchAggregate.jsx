@@ -328,7 +328,7 @@ function CertsSection({ certs }) {
   );
 
   const soon    = visible.filter(c => isExpiringSoon(certIso(c.end_date))).length;
-  const hidden  = certs.length / 2 - visible.length;
+  const hidden  = certs.length - visible.length;
 
   if (visible.length === 0) return (
     <Card>
