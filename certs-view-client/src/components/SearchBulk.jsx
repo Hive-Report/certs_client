@@ -6,7 +6,7 @@ import edrpouCache from '../store/edrpouCache.js';
 // ── Constants ─────────────────────────────────────────────────────────────────
 const PAGE_BG    = '#f4f6f9';
 const BRAND      = '#32C48D';
-const HORIZON_DAYS = 90; // 3 months
+const HORIZON_DAYS = 180; // 6 months
 
 const TODAY = new Date();
 TODAY.setHours(0, 0, 0, 0);
@@ -227,7 +227,7 @@ export default function SearchBulk() {
         </h1>
         <p style={{ color: '#6b7280', fontSize: 13, marginBottom: 20 }}>
           Введіть ЄДРПОУ (кожен з нового рядка) — буде показано ліцензії та сертифікати КЕП,
-          що закінчуються протягом 3 місяців.
+          що закінчуються протягом 6 місяців.
         </p>
 
         {/* ── Input card ── */}
@@ -286,7 +286,7 @@ export default function SearchBulk() {
               <span style={{ fontSize: 13, color: '#6b7280' }}>
                 {rows.length > 0
                   ? `Знайдено ${rows.length} позицій`
-                  : 'Нічого не знайдено — всі ліцензії та сертифікати діють більше 3 місяців'}
+                  : 'Нічого не знайдено — всі ліцензії та сертифікати діють більше 6 місяців'}
               </span>
             )}
           </div>
@@ -302,7 +302,7 @@ export default function SearchBulk() {
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             }}>
               <span style={{ fontWeight: 700, fontSize: '1rem', color: '#111827' }}>
-                Закінчення протягом 90 днів
+                Закінчення протягом 180 днів
               </span>
               <button
                 onClick={handleExport}
